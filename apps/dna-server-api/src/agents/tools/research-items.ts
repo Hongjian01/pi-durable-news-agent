@@ -11,6 +11,7 @@ import { limits } from "../../news/budgets.ts";
 import { ResearchBinding } from "../../news/research-binding.ts";
 import { researchPrompt } from "../../news/research-prompt.ts";
 import { candidateResearchBatches } from "../../news/research-plan.ts";
+import { researchRemaining } from "../../news/research-budget.ts";
 
 export const MAX_BATCHES = 2;
 export const MAX_PER_BATCH = 4;
@@ -41,6 +42,8 @@ export function researchItems(deps: Deps, child: () => AgentChange) {
       if (scope && ids.length > limits(deps.store).researchItems)
         return toolError("research_item_budget_exhausted");
       if (scope) {
+        if (researchRemaining(deps.store, scope.sweepId, ids) === 0)
+          return toolError("research_budget_exhausted: retryable=false. Do not restart research or attempt publication without findings; finish with an honest partial result.");
         for (const id of ids)
           if (
             !deps.store.db
@@ -159,6 +162,12 @@ export function researchItems(deps: Deps, child: () => AgentChange) {
         return `#${id} ${f.actionability ?? "unknown"} actionability: ${f.summary.slice(0, 300)}${f.claimSupport.length ? ` (${supported} of ${f.claimSupport.length} claims supported)` : ""}${context?.strategy.researchCandidates ? `\nSupported findings: ${JSON.stringify(f.claimSupport.filter((c) => c.supported >= 0.7))}` : ""}`;
       });
       const failed = results.filter((r) => r.status !== "done");
+      if (failed.length || ids.some((id) => !deps.store.news.findings(id).length)) {
+        if (scope)
+          deps.store.db.prepare("UPDATE research_jobs SET status='failed' WHERE task_id=?").run(api.taskId);
+        const remaining = scope ? researchRemaining(deps.store, scope.sweepId, ids) : null;
+        return toolError(`${lines.join("\n")}\nresearch_incomplete: remaining_model_calls=${remaining ?? "unknown"}; retryable=${remaining !== 0}. ${remaining === 0 ? "Budget exhausted. Do not retry research or publication; preserve partial failure." : "Repair missing findings before publication."}`);
+      }
       return toolText(
         `${[...lines, ...relationships].join("\n")}${context?.strategy.researchCandidates ? "\nBefore publication compare every researched candidate against each part of the original user question. Prefer direct supported answers over related terminology or generic actionability. State which candidate answers each part and which parts remain unanswered. Do not infer an answer from a neighbouring concept. If none answers the question, report insufficient evidence rather than publish an unrelated card." : ""}${failed.length ? `\n${failed.length} researcher${failed.length > 1 ? "s" : ""} did not finish: ${failed.map((f) => f.reason).join(", ")}` : ""}`,
         { children: results.map((r) => r.conversationId) },

@@ -10,6 +10,7 @@ import type { Deps } from "../deps.ts";
 import { execution, assertExecution, FencedExecution, type Execution } from "../db/execution.ts";
 import { judgmentWaitTask, waitForJudgment } from "./judgment-wait.ts";
 import { ResearchBinding } from "./research-binding.ts";
+import { researchRemaining } from "./research-budget.ts";
 
 /** Bind from durable task ancestry and original submission, never from the
  * currently active sweep or its current epoch. Persist before doing any work. */
@@ -36,6 +37,7 @@ export async function toolExecution(
           sweepId: research.sweepId,
           epoch: research.epoch,
           researchDeadline: research.deadline,
+          itemIds: research.itemIds ? [...research.itemIds] : undefined,
         };
       const saved = deps.store.db
         .prepare(
@@ -136,6 +138,9 @@ export function scopedTool(
             : undefined;
           return await execution.run(runtimeScope, async () => {
             assertExecution(deps.store.db);
+            if (scope?.researchDeadline && runtimeScope?.itemIds?.length && tool.name !== "report_findings" &&
+                researchRemaining(deps.store, scope.sweepId, runtimeScope.itemIds) <= 2)
+              return toolError("research_budget_delivery_only: reserve the remaining model calls for report_findings. Submit the minimal requested facts with exact citations now; if evidence is insufficient, save an empty claims/citations report. Do not continue browsing or exploratory classification.");
             if (scope && args.sweep_id !== undefined && args.sweep_id !== scope.sweepId)
               throw new FencedExecution("Tool sweep does not match originating execution");
             if (scope && args.item_id !== undefined) {

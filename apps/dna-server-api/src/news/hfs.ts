@@ -1,5 +1,6 @@
 // The Judge: every jev command the app runs, with each call priced, logged and stored in jev_calls.
 import { join } from "node:path";
+import { CLAIM_EVIDENCE_LIMIT } from "./claim-evidence.ts";
 import type { HfsScores } from "@dna/sdk";
 import type { Logger } from "@dna/sdk/node";
 import {
@@ -363,9 +364,11 @@ export class Judge {
     ref: JudgeRef = {},
   ): Promise<{ claim: string; supported: number }[]> {
     if (!claims.length) return [];
+    if (evidence.length > CLAIM_EVIDENCE_LIMIT)
+      throw new Error("claim_evidence_window_required: pass a source excerpt of at most 6000 UTF-16 characters");
     const result = await this.run(
       "claim-support",
-      { claims: claims.slice(0, 8), evidence: evidence.slice(0, 6000) },
+      { claims: claims.slice(0, 8), evidence },
       ref,
     );
     return claims.slice(0, 8).map((claim, i) => ({

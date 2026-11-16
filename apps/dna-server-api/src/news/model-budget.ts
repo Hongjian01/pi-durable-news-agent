@@ -11,6 +11,7 @@ import { toolExecution } from "./execution.ts";
 import { reserve, settle, limits, estimatedModelCost } from "./budgets.ts";
 import { evaluation } from "./context.ts";
 import { ResearchBinding } from "./research-binding.ts";
+import { researchRemaining } from "./research-budget.ts";
 import type { Context } from "@earendil-works/chord";
 import { cappedModelOptions } from "./model-policy.ts";
 import { createAssistantMessageEventStream, type AssistantMessage } from "@earendil-works/pi-ai";
@@ -158,7 +159,9 @@ export function modelBudget(deps: Deps, session: () => Pick<Harness, "commit"> |
                     ? { "news-desk": frozen.renderedDeskSystem }
                     : {}),
                   ...("news-researcher" in message.sections && binding?.system
-                    ? { "news-researcher": binding.system }
+                    ? { "news-researcher": binding.system + (binding.itemIds?.length
+                        ? `\nResearch budget: ${researchRemaining(deps.store, scope.sweepId, binding.itemIds)} model requests remain before this request. Reserve the last two for report_findings and citation repair. Submit only the requested facts; stop exploratory reading/classification when remaining <= 3. A new research task does not reset the budget.`
+                        : "") }
                     : {}),
                 },
               }

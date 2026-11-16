@@ -17,7 +17,9 @@ export function validateSummary(summary, baseline, mode, review) {
       summary.settings.reliability || summary.settings.components)
     throw Error("Unexpected CI experiment settings");
   if (summary.results.some((r) => r.trial !== 1 || r.variant !== "clean" || r.arm !== "B" ||
-      !["passed", "needs_review"].includes(r.outcome))) throw Error("Execution or quality regression");
+      !["passed", "needs_review"].includes(r.outcome))) throw Error("Execution or quality regression: " +
+        summary.results.filter((r) => !["passed", "needs_review"].includes(r.outcome))
+          .map((r) => `${r.taskId}=${r.outcome}; artifact=${r.artifact ?? "unknown"}`).join("; "));
   if (mode === "live") {
     if (review?.mode !== "model_assisted" || review.humanReviewed !== false ||
         JSON.stringify(review.results?.map((r) => r.taskId).sort()) !== JSON.stringify(expected) ||
@@ -26,7 +28,9 @@ export function validateSummary(summary, baseline, mode, review) {
           !r.score?.checks?.length || r.score.checks.some((c) => !c.passed) ||
           (r.taskId !== "pilot-empty" && (r.score?.judge?.protocol !== baseline.judgeProtocol ||
             r.score.judge.independent !== false || r.score.judge.humanReviewed !== false))))
-      throw Error("Live model-assisted review did not pass all baseline tasks");
+      throw Error("Live model-assisted review did not pass all baseline tasks: " +
+        (review?.results ?? []).filter((r) => r.outcome !== "passed")
+          .map((r) => `${r.taskId}=${r.outcome}; checks=${(r.score?.checks ?? []).filter((c) => !c.passed).map((c) => c.name).join(",")}`).join("; "));
   }
 }
 

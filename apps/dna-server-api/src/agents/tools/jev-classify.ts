@@ -6,6 +6,8 @@ import { StoryMatcher } from "../../news/stories.ts";
 import { pageText } from "../../news/page.ts";
 import { weightsOf } from "../../news/rank.ts";
 import { FixableError, ref, requireItem } from "./shared.ts";
+import { pinnedSnapshot } from "../../news/snapshots.ts";
+import { claimEvidence } from "../../news/claim-evidence.ts";
 
 export function jevClassify(deps: Deps) {
   return defineAppTool({
@@ -58,7 +60,10 @@ export function jevClassify(deps: Deps) {
                 "Pass claims: up to 8 short factual claims from the item.",
               ]);
             const cached = item.cacheId ? deps.store.sources.cachedById(item.cacheId) : undefined;
-            const evidence = args.evidence ?? cached?.contentMd ?? item.excerpt ?? item.title;
+            const body = pinnedSnapshot(deps.store.db, cached?.url ?? item.url)?.body ?? cached?.contentMd ?? item.excerpt ?? item.title;
+            let evidence: string;
+            try { evidence = claimEvidence(body, args.evidence); }
+            catch (error) { return toolError(String(error), ["Use the exact relevant saved source excerpt for these claims. Prefer report_findings with per-claim citations; it verifies support directly."]); }
             const support = await deps.judge.claimSupport(args.claims, evidence, {
               ...r,
               itemId: item.id,
