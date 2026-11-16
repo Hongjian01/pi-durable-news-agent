@@ -69,15 +69,15 @@ async function abort() {
       v-model="text"
       rows="2"
       aria-label="Message the agent"
-      placeholder="Ask about the news, or tell the agent what to watch"
+      placeholder="询问情报，或告诉 Agent 接下来关注什么"
       @keydown="onKey"
     />
     <div class="composer-row">
       <label class="when-busy"
-        ><span>When busy</span>
+        ><span>执行中发送</span>
         <select v-model="mode" aria-label="When busy">
-          <option value="followUp">Follow up</option>
-          <option value="steer">Steer</option>
+          <option value="followUp">后续处理</option>
+          <option value="steer">调整方向</option>
         </select>
       </label>
       <button
@@ -86,7 +86,7 @@ async function abort() {
         :aria-pressed="layout.modelBar"
         @click="layout.modelBar = !layout.modelBar"
       >
-        <Cpu :size="13" />Model
+        <Cpu :size="13" />模型
       </button>
       <span class="grow" />
       <button
@@ -97,7 +97,7 @@ async function abort() {
         aria-label="Stop the agent"
         @click="abort"
       >
-        <Square :size="13" />Stop
+        <Square :size="13" />停止
       </button>
       <button
         type="submit"
@@ -106,7 +106,7 @@ async function abort() {
         :disabled="!text.trim() || sending"
         aria-label="Send message"
       >
-        <Send :size="14" />Send
+        <Send :size="14" />发送
       </button>
     </div>
   </form>

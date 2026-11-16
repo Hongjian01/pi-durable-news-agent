@@ -8,7 +8,7 @@ export const SCHEDULE_PRESETS = [1, 5, 10, 15, 30, 60] as const;
 /** Scheduled sweeps run this often until the reader picks another preset. */
 export const DEFAULT_EVERY = 5;
 /** The most cards one sweep presents until the reader picks another number. */
-export const DEFAULT_CARDS = 7;
+export const DEFAULT_CARDS = 6;
 export const MAX_CARDS = 30;
 
 interface ScheduleSetting {

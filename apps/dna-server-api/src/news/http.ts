@@ -1,6 +1,15 @@
 // Outbound HTTP for sources and articles: timeout, size cap, named User-Agent, retries on transient failures.
 import { HttpError, isRetryable, retryAfterMs, withRetry } from "@dna/sdk";
 import type { Logger } from "@dna/sdk/node";
+import { request as httpRequest } from "node:http";
+import { request as httpsRequest } from "node:https";
+import { createGunzip, createInflate, createBrotliDecompress } from "node:zlib";
+import { resolvePublic, UnsafeUrl } from "./network-policy.ts";
+import { reserve, settle, BudgetExceeded } from "./budgets.ts";
+import { httpKind } from "./outbound-http.ts";
+import type { Store } from "../db/store.ts";
+import { execution } from "../db/execution.ts";
+import { imageCost } from "./images.ts";
 
 export interface HttpResponse {
   status: number;
@@ -45,22 +54,163 @@ async function readCapped(res: Response, maxBytes: number): Promise<string> {
     size += value.byteLength;
     if (size > maxBytes) {
       await reader.cancel();
-      break;
+      throw new Error("response_body_limit");
     }
     chunks.push(value);
   }
   return new TextDecoder().decode(Buffer.concat(chunks));
 }
 
-export function liveHttp(log?: Logger): Http {
+/** Native request pins a validated DNS address to the socket, closing the
+ * validate-then-resolve-again rebinding window. Size is checked after decoding. */
+export async function publicFetch(
+  input: string,
+  init: RequestInit = {},
+  maxBytes = 1024 * 1024,
+  options: { store?: Store; allowPrivateForTests?: boolean; kind?: string } = {},
+  hops = 0,
+): Promise<Response> {
+  if (hops > 5) throw new Error("redirect_limit");
+  init = { ...init, signal: init.signal ?? AbortSignal.timeout(30_000) };
+  const pinned =
+    options.allowPrivateForTests && hops === 0 && !execution.getStore()
+      ? { url: new URL(input), address: "127.0.0.1", family: 4 }
+      : await resolvePublic(input, undefined, init.signal ?? undefined);
+  const kind = options.kind ?? httpKind(input);
+  const reservation = options.store
+    ? reserve(options.store, kind, pinned.url.origin + pinned.url.pathname)
+    : undefined;
+  try {
+    const response = await new Promise<{ status: number; headers: Headers; body: Buffer }>(
+      (resolve, reject) => {
+        const headers = Object.fromEntries(new Headers(init.headers).entries());
+        const request = (pinned.url.protocol === "https:" ? httpsRequest : httpRequest)(
+          pinned.url,
+          {
+            method: init.method ?? "GET",
+            headers: { "accept-encoding": "gzip, deflate, br", ...headers },
+            signal: init.signal ?? undefined,
+            lookup: ((_host: string, lookupOptions: any, callback: any) =>
+              lookupOptions.all
+                ? callback(null, [{ address: pinned.address, family: pinned.family }])
+                : callback(null, pinned.address, pinned.family)) as any,
+          },
+          async (res) => {
+            const status = res.statusCode ?? 500;
+            const responseHeaders = new Headers();
+            for (const [key, value] of Object.entries(res.headers))
+              if (value !== undefined)
+                responseHeaders.set(key, Array.isArray(value) ? value.join(", ") : value);
+            if ([301, 302, 303, 307, 308].includes(status)) {
+              res.destroy();
+              resolve({ status, headers: responseHeaders, body: Buffer.alloc(0) });
+              return;
+            }
+            const encoding = res.headers["content-encoding"];
+            const decoder =
+              encoding === "gzip"
+                ? createGunzip()
+                : encoding === "deflate"
+                  ? createInflate()
+                  : encoding === "br"
+                    ? createBrotliDecompress()
+                    : undefined;
+            const stream = decoder ? res.pipe(decoder) : res;
+            if (decoder) res.on("error", (error) => decoder.destroy(error));
+            try {
+              let size = 0;
+              const chunks: Buffer[] = [];
+              for await (const value of stream) {
+                const chunk = Buffer.from(value);
+                size += chunk.length;
+                if (size > maxBytes) {
+                  res.destroy();
+                  stream.destroy();
+                  throw new Error("response_body_limit");
+                }
+                chunks.push(chunk);
+              }
+              resolve({ status, headers: responseHeaders, body: Buffer.concat(chunks) });
+            } catch (error) {
+              reject(error);
+            }
+          },
+        );
+        request.on("error", reject);
+        if (init.body) {
+          if (typeof init.body !== "string" && !Buffer.isBuffer(init.body)) {
+            request.destroy();
+            reject(new Error("Unsupported outbound request body"));
+            return;
+          }
+          request.write(init.body);
+        }
+        request.end();
+      },
+    );
+    if (options.store) {
+      let amount: number | null = ["firecrawl", "image"].includes(kind) ? null : 0;
+      let source = "not_applicable";
+      if (kind === "image") {
+        try {
+          const payload = JSON.parse(response.body.toString());
+          if (payload.usage) {
+            amount = imageCost(payload.usage);
+            source = "estimated";
+          }
+        } catch {}
+      }
+      settle(options.store.db, reservation, { amount, source });
+    }
+    if ([301, 302, 303, 307, 308].includes(response.status)) {
+      const location = response.headers.get("location");
+      if (!location) throw new Error("redirect_missing_location");
+      const next = new URL(location, pinned.url);
+      const headers = new Headers(init.headers);
+      if (next.origin !== pinned.url.origin) {
+        headers.delete("authorization");
+        headers.delete("cookie");
+        headers.delete("proxy-authorization");
+      }
+      const get =
+        response.status === 303 || ([301, 302].includes(response.status) && init.method === "POST");
+      return publicFetch(
+        next.toString(),
+        { ...init, headers, ...(get ? { method: "GET", body: undefined } : {}) },
+        maxBytes,
+        options,
+        hops + 1,
+      );
+    }
+    const result = new Response([204, 304].includes(response.status) ? null : response.body, {
+      status: response.status,
+      headers: response.headers,
+    });
+    Object.defineProperty(result, "url", { value: pinned.url.toString() });
+    return result;
+  } catch (error) {
+    if (options.store) settle(options.store.db, reservation, { status: "unknown" });
+    throw error;
+  }
+}
+
+export function liveHttp(
+  log?: Logger,
+  optionsConfig: { store?: Store; allowPrivateForTests?: boolean } = {},
+): Http {
   const run = async (url: string, init: RequestInit, options: GetOptions): Promise<HttpResponse> =>
     withRetry(
       async () => {
-        const res = await fetch(url, {
-          ...init,
-          redirect: "follow",
-          signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
-        });
+        const res = await publicFetch(
+          url,
+          {
+            ...init,
+            redirect: "follow",
+            signal: AbortSignal.timeout(options.timeoutMs ?? 15_000),
+          },
+          Math.min(options.maxBytes ?? 1024 * 1024, 1024 * 1024),
+          optionsConfig,
+        );
         if (!res.ok && !(options.allowStatus ?? []).includes(res.status)) {
           const body = (await readCapped(res, 4000)).slice(0, 500);
           throw new HttpError(res.status, `GET ${new URL(url).host} HTTP ${res.status}`, {
@@ -72,12 +222,15 @@ export function liveHttp(log?: Logger): Http {
           status: res.status,
           url: res.url || url,
           headers: res.headers,
-          text: await readCapped(res, options.maxBytes ?? 2 * 1024 * 1024),
+          text: await readCapped(res, options.maxBytes ?? 1024 * 1024),
         };
       },
       {
         attempts: 3,
         retryOn: (error) =>
+          !(error instanceof BudgetExceeded) &&
+          !(error instanceof UnsafeUrl) &&
+          !String(error).includes("body_limit") &&
           isRetryable(error) &&
           !(error instanceof HttpError && options.noRetryOn?.includes(error.status)),
         baseMs: 800,

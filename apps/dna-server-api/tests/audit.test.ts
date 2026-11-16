@@ -45,7 +45,8 @@ test("the audit wants an hfs classification from this sweep for every presented 
       toolCallId: `audit:news:${itemId}`,
       sweepId: sweep.id,
     });
-  store.sweeps.update(sweep.id, { candidates: 2, status: "completed" });
+  store.sweeps.update(sweep.id, { candidates: 2, status: "finalizing" });
+  store.sweeps.update(sweep.id, { status: "completed" });
   const step = "hfs for every presented item";
   store.news.addClassification({ itemId: a, command: "hfs", version: 1, hfs, sweepId: sweep.id });
   assert.ok(auditSweep(store, sweep.id)!.missing.includes(step));

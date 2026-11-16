@@ -7,13 +7,20 @@ import { runParallel } from "@dna/durable-agent";
 import type { Deps } from "../deps.ts";
 import type { Item } from "../db/repos/news.ts";
 import { fetchSource } from "./sources/index.ts";
-import { rankScore, weightsOf } from "./rank.ts";
+import { candidateRankScore, weightsOf } from "./rank.ts";
 import { planQueries } from "./taste.ts";
 import { StoryMatcher } from "./stories.ts";
 import { packageRelease } from "./releases.ts";
+import { execution, assertExecution, FencedExecution } from "../db/execution.ts";
+import { JudgmentRetry } from "./operations.ts";
+import { faultPoint } from "./faults.ts";
+import { tx } from "../db/db.ts";
+import { evaluation, referenceTime } from "./context.ts";
+import { limits } from "./budgets.ts";
 
 export interface SweepInput {
   sweepId: number;
+  expectedEpoch?: number;
 }
 
 export interface Candidate {
@@ -118,46 +125,59 @@ export function createSweepTask(deps: Deps) {
     work: Work,
     body: () => Promise<void>,
   ) {
-    try {
-      await body();
-    } catch (error) {
-      if (runtime.signal.aborted) throw error;
-      const attempt = (work.attempt ?? 0) + 1;
-      const message = error instanceof Error ? error.message : String(error);
-      log.warn("sweep.phase_failed", {
-        sweepId: task.input.sweepId,
-        phase: work.phase,
-        attempt,
-        error: message,
-      });
-      store.sweeps.phase(task.input.sweepId, work.phase, "failed", message.slice(0, 300));
-      if (attempt > BACKOFF_MS.length) {
-        store.sweeps.update(task.input.sweepId, {
-          status: "failed",
-          error: message.slice(0, 500),
-          endedAt: new Date().toISOString(),
-        });
-        publish(task.input.sweepId);
-        await runtime.commit(
-          () => ({ status: "terminal", outcome: { status: "failed", error: { message } } }),
-          ctx,
-        );
-        return;
-      }
-      const until = runtime.now() + BACKOFF_MS[attempt - 1];
-      await runtime.commit(async (tx) => {
-        await progress(
-          tx,
-          task,
-          work.phase,
-          `${work.phase} failed, retry ${attempt} of ${BACKOFF_MS.length}`,
-        );
-        return {
-          status: "running",
-          checkpoint: { phase: "retry", resume: { ...work, attempt }, until },
-        };
-      }, ctx);
-    }
+    return execution.run(
+      { sweepId: task.input.sweepId, epoch: task.input.expectedEpoch ?? 0 },
+      async () => {
+        try {
+          assertExecution(store.db);
+          await body();
+        } catch (error) {
+          if (error instanceof FencedExecution) {
+            await runtime.commit(
+              () => ({ status: "terminal", outcome: { status: "aborted" } }),
+              ctx,
+            );
+            return;
+          }
+          if (runtime.signal.aborted) throw error;
+          const attempt = (work.attempt ?? 0) + (error instanceof JudgmentRetry ? 0 : 1);
+          const message = error instanceof Error ? error.message : String(error);
+          log.warn("sweep.phase_failed", {
+            sweepId: task.input.sweepId,
+            phase: work.phase,
+            attempt,
+            error: message,
+          });
+          store.sweeps.phase(task.input.sweepId, work.phase, "failed", message.slice(0, 300));
+          if (attempt > BACKOFF_MS.length) {
+            store.lifecycle.source(task.input.sweepId, `phase:${work.phase}`, "failed", message);
+            publish(task.input.sweepId);
+            await runtime.commit(
+              () => ({ status: "terminal", outcome: { status: "failed", error: { message } } }),
+              ctx,
+            );
+            return;
+          }
+          const until =
+            error instanceof JudgmentRetry
+              ? error.retryAt
+              : runtime.now() + BACKOFF_MS[attempt - 1];
+          store.lifecycle.wait(task.input.sweepId, "retry", until);
+          await runtime.commit(async (tx) => {
+            await progress(
+              tx,
+              task,
+              work.phase,
+              `${work.phase} failed, retry ${attempt} of ${BACKOFF_MS.length}`,
+            );
+            return {
+              status: "running",
+              checkpoint: { phase: "retry", resume: { ...work, attempt }, until },
+            };
+          }, ctx);
+        }
+      },
+    );
   }
 
   return defineTask<SweepInput, SweepState, SweepResult>({
@@ -173,14 +193,38 @@ export function createSweepTask(deps: Deps) {
           store.sweeps.update(sweepId, { status: "running" });
           store.sweeps.phase(sweepId, "gather", "running");
           publish(sweepId);
-          const since = new Date(Date.now() - MAX_AGE_DAYS * 86_400_000);
+          const context = evaluation(store, sweepId)?.value;
+          const since = new Date(referenceTime(store, sweepId) - MAX_AGE_DAYS * 86_400_000);
           const bag = work.bag ?? 1;
-          const queries = planQueries(store, config.sweepQueries, {
-            exclude: bag === 2 ? work.terms : undefined,
-          }).map((k) => k.term);
+          const queries = planQueries(
+            store,
+            context?.strategy.sweepQueries ?? config.sweepQueries,
+            {
+              exclude: bag === 2 ? work.terms : undefined,
+            },
+          ).map((k) => k.term);
           // Sources whose interval has passed (a new source at once; unchanged ones return nothing, see fetchSource).
           // A second bag only searches: the sources were just checked.
-          const due = bag === 2 ? [] : store.sources.due();
+          const enabledSources =
+            bag === 2
+              ? []
+              : (context?.sources ?? store.sources.list()).filter((source) => source.enabled);
+          const hard = limits(store, sweepId);
+          const due = enabledSources.slice(0, hard.sources);
+          if (enabledSources.length > hard.sources)
+            store.lifecycle.source(
+              sweepId,
+              "source_budget",
+              "failed",
+              "enabled source limit exceeded",
+            );
+          for (const source of due)
+            if (
+              !store.db
+                .prepare("SELECT 1 FROM sweep_sources WHERE sweep_id=? AND source_key=?")
+                .get(sweepId, `source:${source.id}`)
+            )
+              store.lifecycle.source(sweepId, `source:${source.id}`, "pending");
           const fetched = await runParallel(due, 4, (source) =>
             fetchSource(source, {
               http: deps.http,
@@ -190,13 +234,29 @@ export function createSweepTask(deps: Deps) {
               queries: source.kind === "hn_search" ? queries : undefined,
             }),
           );
+          for (const f of fetched)
+            store.lifecycle.source(
+              sweepId,
+              `source:${f.source.id}`,
+              f.ok ? "succeeded" : "failed",
+              f.error ?? (f.ok ? undefined : f.status),
+            );
           const docs = fetched.flatMap((f) =>
             f.docs.map((doc) => ({ doc, sourceName: f.source.name })),
           );
           // Every topic in the bag, the last week newest first, four searches at a time.
-          const searches = await runParallel(queries, 4, (query) =>
-            search.search(query, { sweepId }, { hours: SEARCH_DAYS * 24, limit: 25 }),
+          const searches = await runParallel(queries, 4, async (query) =>
+            search
+              .search(query, { sweepId }, { hours: SEARCH_DAYS * 24, limit: 25 })
+              .catch((error) => ({ hits: [], failure: String(error) })),
           );
+          for (let i = 0; i < queries.length; i++)
+            store.lifecycle.source(
+              sweepId,
+              `query:${queries[i]}`,
+              "failure" in searches[i] ? "failed" : "succeeded",
+              "failure" in searches[i] ? String((searches[i] as any).failure) : undefined,
+            );
           const searched = searches.length;
           for (const { hits } of searches) {
             for (const h of hits) {
@@ -223,6 +283,15 @@ export function createSweepTask(deps: Deps) {
                 Date.parse(a.doc.publishedAt ?? a.doc.fetchedAt),
             );
           for (const { doc, sourceName } of fresh) {
+            if (store.news.itemsForSweep(sweepId).length >= hard.candidates) {
+              store.lifecycle.source(
+                sweepId,
+                "candidate_budget",
+                "failed",
+                "candidate limit exceeded",
+              );
+              break;
+            }
             store.news.upsertItem({
               sweepId,
               cacheId: doc.id,
@@ -236,9 +305,32 @@ export function createSweepTask(deps: Deps) {
               discussionUrl: doc.discussionUrl,
             });
           }
-          for (const retry of store.news.retryable(10))
+          for (const retry of store.news
+            .retryable(10)
+            .slice(0, Math.max(0, hard.candidates - store.news.itemsForSweep(sweepId).length)))
             store.news.updateItem(retry.id, { sweepId });
+          // A new request may reconsider unfinished work from a cancelled or
+          // failed sweep. Preserve that sweep's disposition, but do not carry
+          // global scores into the new evaluation context.
+          store.db
+            .prepare(`UPDATE items SET sweep_id=?,status='candidate',relevance=NULL,worth=NULL,importance=NULL,novelty=NULL,attention=NULL,matched_topic=NULL
+            WHERE id IN (SELECT i.id FROM items i JOIN sweeps s ON s.id=i.sweep_id
+              WHERE s.status IN ('cancelled','partial','failed') AND i.status IN ('candidate','researching','classified','failed')
+              AND NOT EXISTS (SELECT 1 FROM cards c WHERE c.item_id=i.id AND c.kind='news') ORDER BY i.id LIMIT ?)`)
+            .run(sweepId, Math.max(0, hard.candidates - store.news.itemsForSweep(sweepId).length));
           store.news.filterReleases(sweepId);
+          for (const item of store.news.itemsForSweep(sweepId))
+            store.lifecycle.item(sweepId, item.id, {
+              disposition:
+                item.status === "duplicate"
+                  ? "duplicate"
+                  : item.status === "rejected"
+                    ? "filtered"
+                    : "pending",
+            });
+          if (!due.length && !queries.length)
+            store.lifecycle.source(sweepId, "empty_configuration", "succeeded");
+          store.db.prepare("INSERT OR IGNORE INTO sweep_budgets(sweep_id) VALUES (?)").run(sweepId);
           // Idempotent on replay: everything this sweep owns that still needs judging.
           const itemIds = store.news
             .itemsForSweep(sweepId, ["candidate"])
@@ -254,6 +346,7 @@ export function createSweepTask(deps: Deps) {
               ? `${itemIds.length} new from a second bag of ${searched} searches`
               : `${itemIds.length} new from ${due.length} sources and ${searched} searches`;
           store.sweeps.phase(sweepId, "gather", "done", summary);
+          faultPoint(config.provider, "phase:gather");
           log.info("sweep.gathered", {
             sweepId,
             bag,
@@ -290,14 +383,44 @@ export function createSweepTask(deps: Deps) {
           const relevanceMin = judge.policy("relevance", "relevance_min", 0.5);
           const worthMin = judge.policy("worth-attention", "worth_min", 0.5);
           const chunk = store.news.items(work.itemIds.slice(work.cursor, work.cursor + GATE_CHUNK));
-          await runParallel(chunk, 5, async (item) => {
-            if (item.relevance !== undefined && item.worth !== undefined) return;
+          const pendingErrors: unknown[] = [];
+          await runParallel(chunk, 4, async (item) => {
+            if (item.status === "failed") return;
             try {
-              const [rel, worth] = await Promise.all([
-                judge.relevance(item, { sweepId }),
-                judge.worth(item, { sweepId }),
+              const outcomes = await Promise.allSettled([
+                item.relevance === undefined
+                  ? judge.relevance(item, { sweepId }).then((rel) => {
+                      store.news.updateItem(item.id, {
+                        relevance: rel.relevance,
+                        matchedTopic: rel.matchedTopic,
+                      });
+                      store.lifecycle.progress(sweepId);
+                      return rel;
+                    })
+                  : Promise.resolve({ relevance: item.relevance, matchedTopic: item.matchedTopic }),
+                item.worth === undefined
+                  ? judge.worth(item, { sweepId }).then((worth) => {
+                      store.news.updateItem(item.id, {
+                        worth: worth.worth,
+                        novelty: worth.novelty,
+                      });
+                      store.lifecycle.progress(sweepId);
+                      return worth;
+                    })
+                  : Promise.resolve({ worth: item.worth, novelty: item.novelty ?? 0 }),
               ]);
-              const passed = rel.relevance >= relevanceMin && worth.worth >= worthMin;
+              const failure = outcomes.find((o) => o.status === "rejected");
+              if (failure?.status === "rejected") throw failure.reason;
+              const rel = (
+                outcomes[0] as PromiseFulfilledResult<{ relevance: number; matchedTopic?: string }>
+              ).value;
+              const worth = (
+                outcomes[1] as PromiseFulfilledResult<{ worth: number; novelty: number }>
+              ).value;
+              const evidenceMode =
+                evaluation(store, sweepId)?.value.strategy.selectionMode === "evidence";
+              const passed =
+                rel.relevance >= relevanceMin && (evidenceMode || worth.worth >= worthMin);
               store.news.updateItem(item.id, {
                 relevance: rel.relevance,
                 matchedTopic: rel.matchedTopic,
@@ -306,10 +429,26 @@ export function createSweepTask(deps: Deps) {
                 attention: judge.preAttention(rel.relevance, worth.worth, worth.novelty),
                 status: passed ? "candidate" : "rejected",
               });
+              store.lifecycle.item(sweepId, item.id, {
+                disposition: passed ? "pending" : "filtered",
+                reason: passed
+                  ? "gate_passed"
+                  : `gate: relevance=${rel.relevance} (min ${relevanceMin}), worth=${worth.worth} (min ${worthMin})`,
+              });
             } catch (error) {
-              store.news.failItem(item.id, String(error));
+              if (error instanceof JudgmentRetry || error instanceof FencedExecution)
+                pendingErrors.push(error);
+              else {
+                store.news.failItem(item.id, String(error));
+                store.lifecycle.item(sweepId, item.id, {
+                  disposition: "error",
+                  reason: String(error),
+                });
+              }
             }
           });
+          if (pendingErrors.length) throw pendingErrors[0];
+          faultPoint(config.provider, "phase:gate");
           const cursor = work.cursor + GATE_CHUNK;
           if (cursor < work.itemIds.length) {
             await runtime.commit(
@@ -332,12 +471,28 @@ export function createSweepTask(deps: Deps) {
             .items(work.itemIds)
             .filter((i) => i.status === "candidate" && !i.publishedAt && !i.dateSource);
           await runParallel(undated, 4, async (item) => {
-            const { at } = await deps.dates.resolve(item);
-            if (at && Date.parse(at) < Date.now() - MAX_AGE_DAYS * 86_400_000)
-              store.news.updateItem(item.id, {
-                status: "rejected",
-                lastError: `Published ${at.slice(0, 10)}, older than ${MAX_AGE_DAYS} days`,
-              });
+            await deps.dates.resolve(item);
+          });
+          // Reapply after replay as well: finding a page date and recording its
+          // final disposition must not leave an unexplained pending item.
+          tx(store.db, () => {
+            for (const item of store.news.items(work.itemIds)) {
+              if (
+                item.status === "candidate" &&
+                item.publishedAt &&
+                Date.parse(item.publishedAt) <
+                  referenceTime(store, sweepId) - MAX_AGE_DAYS * 86_400_000
+              ) {
+                store.news.updateItem(item.id, {
+                  status: "rejected",
+                  lastError: `Published ${item.publishedAt.slice(0, 10)}, older than ${MAX_AGE_DAYS} days`,
+                });
+                store.lifecycle.item(sweepId, item.id, {
+                  disposition: "filtered",
+                  reason: "outside_news_window",
+                });
+              }
+            }
           });
           const judged = store.news.items(work.itemIds);
           const kept = judged.filter(
@@ -382,11 +537,14 @@ export function createSweepTask(deps: Deps) {
               continue;
             }
             await matcher.classify(item, history, sweepId);
+            if (store.news.item(item.id)?.status === "duplicate")
+              store.lifecycle.item(sweepId, item.id, { disposition: "duplicate" });
             history.push(store.news.item(item.id)!);
           }
           const duplicates = store.news.itemsForSweep(sweepId, ["duplicate"]).length;
           store.sweeps.update(sweepId, { duplicates });
           store.sweeps.phase(sweepId, "dedupe", "done", `${duplicates} duplicates`);
+          faultPoint(config.provider, "phase:dedupe");
           await runtime.commit(async (tx) => {
             await progress(
               tx,
@@ -411,6 +569,7 @@ export function createSweepTask(deps: Deps) {
             .filter((i) => i.relevance !== undefined);
           // jev scores importance for the reader once per item (kept on the item, so a replay ranks the same), then
           // the topic and source weights and freshness weigh it; the top N become the sweep's candidates.
+          const rankingErrors: unknown[] = [];
           await runParallel(
             kept.filter((i) => i.importance === undefined),
             5,
@@ -422,15 +581,31 @@ export function createSweepTask(deps: Deps) {
                 store.news.updateItem(item.id, { importance });
               } catch (error) {
                 log.warn("sweep.importance_failed", { itemId: item.id, error: String(error) });
-                store.news.updateItem(item.id, { importance: (item.attention ?? 50) / 100 });
+                if (error instanceof JudgmentRetry || error instanceof FencedExecution)
+                  rankingErrors.push(error);
+                else {
+                  store.news.failItem(item.id, String(error));
+                  store.lifecycle.item(sweepId, item.id, {
+                    disposition: "error",
+                    reason: String(error),
+                  });
+                }
               }
             },
           );
+          if (rankingErrors.length) throw rankingErrors[0];
           const scored = store.news
             .items(kept.map((i) => i.id))
+            .filter((item) => item.importance !== undefined && item.status !== "failed")
             .map((item) => ({
               item,
-              score: rankScore(item.importance ?? 0, weightsOf(store, item), item.publishedAt),
+              score: candidateRankScore(
+                item,
+                weightsOf(store, item),
+                referenceTime(store, sweepId),
+                evaluation(store, sweepId)?.value.policy.freshness,
+                evaluation(store, sweepId)?.value.strategy.selectionMode ?? "news",
+              ),
             }))
             .sort((a, b) => b.score - a.score || a.item.id - b.item.id);
           // Give each story a slot before a second development of the same story consumes the card budget.
@@ -443,8 +618,20 @@ export function createSweepTask(deps: Deps) {
             seenStories.add(id);
           }
           const ranked = [...first, ...updates];
-          const cap = store.sweeps.get(sweepId)?.maxCards ?? deps.schedule.cards();
+          const cap = Math.min(
+            6,
+            evaluation(store, sweepId)?.value.strategy.researchCandidates ||
+              store.sweeps.get(sweepId)?.maxCards ||
+              deps.schedule.cards(),
+          );
           const top = ranked.slice(0, cap);
+          for (const selected of top)
+            store.lifecycle.item(sweepId, selected.id, { selected: 1, disposition: "selected" });
+          for (const rest of ranked.slice(cap))
+            store.lifecycle.item(sweepId, rest.id, {
+              disposition: "not_selected",
+              reason: `ranked below ${cap}`,
+            });
           for (const rest of ranked.slice(cap))
             store.news.updateItem(rest.id, {
               status: "rejected",
@@ -462,6 +649,7 @@ export function createSweepTask(deps: Deps) {
             firecrawlCreditsUsed: store.telemetry.creditsForSweep(sweepId),
           });
           store.sweeps.phase(sweepId, "rank", "done", `${top.length} candidates`);
+          faultPoint(config.provider, "phase:rank");
           publish(sweepId);
           log.info("sweep.ranked", {
             sweepId,
@@ -485,16 +673,18 @@ export function createSweepTask(deps: Deps) {
       },
       retry: async (task, runtime, ctx) => {
         const state = task.state.checkpoint as Extract<SweepState, { phase: "retry" }>;
-        await runtime.sleep(state.until, ctx);
-        await runtime.commit(() => ({ status: "running", checkpoint: state.resume }), ctx);
+        const scope = { sweepId: task.input.sweepId, epoch: task.input.expectedEpoch ?? 0 };
+        await execution.run(scope, async () => {
+          assertExecution(store.db);
+          store.lifecycle.wait(scope.sweepId, "retry", state.until);
+          faultPoint(config.provider, "retry_sleep");
+          await runtime.sleep(state.until, ctx);
+          assertExecution(store.db);
+          await runtime.commit(() => ({ status: "running", checkpoint: state.resume }), ctx);
+        });
       },
     },
     abort: async (task, runtime, ctx) => {
-      store.sweeps.update(task.input.sweepId, {
-        status: "failed",
-        error: "aborted",
-        endedAt: new Date().toISOString(),
-      });
       publish(task.input.sweepId);
       await runtime.commit(() => ({ status: "terminal", outcome: { status: "aborted" } }), ctx);
     },

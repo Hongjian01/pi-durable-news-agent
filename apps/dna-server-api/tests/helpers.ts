@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, mkdirSync, copyFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadConfig, type Config } from "../src/config.ts";
@@ -40,6 +40,7 @@ export const until = async (
 /** A faux app on fixture feeds and fixture jev, in a temp dir. */
 export async function fauxApp(
   env: Record<string, string> = {},
+  options: Parameters<typeof openApp>[1] = {},
 ): Promise<{ app: App; dir: string; config: Config; cleanup: () => Promise<void> }> {
   const dir = mkdtempSync(join(tmpdir(), "dna-app-"));
   process.env.DNA_LOG_DIR = join(dir, "logs");
@@ -48,10 +49,21 @@ export async function fauxApp(
     ...process.env,
     DNA_PROVIDER: "faux",
     DNA_SEARCH_MODE: "fixture",
+    DNA_IMAGES: "1",
     DNA_DATA_DIR: dir,
     ...env,
   });
-  const app = await openApp(config);
+  // Keep original core/model fixtures on their explicit legacy source/topic
+  // dataset. Product initialization is tested separately with the real preset.
+  const fixtureConfig = join(dir, "fixture-config");
+  mkdirSync(fixtureConfig);
+  for (const name of ["sources.json", "keywords.json"])
+    copyFileSync(join(CONFIG_DIR, name), join(fixtureConfig, name));
+  config.configDir = fixtureConfig;
+  const app = await openApp(config, options);
+  // Legacy UI/core fixtures explicitly select four items; production defaults
+  // are independent. Every selected item must actually be processed.
+  app.schedule.set({ cardsPerSweep: 4 });
   return {
     app,
     dir,
@@ -68,7 +80,9 @@ export async function fauxApp(
 export async function waitForSweep(app: App, sweepId: number, ms = 30_000) {
   await until(
     () =>
-      ["completed", "no_news", "failed", "stalled"].includes(app.store.sweeps.get(sweepId)!.status),
+      ["completed", "no_news", "failed", "stalled", "partial", "cancelled"].includes(
+        app.store.sweeps.get(sweepId)!.status,
+      ),
     ms,
     `sweep ${sweepId}`,
   );

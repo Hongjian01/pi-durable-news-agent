@@ -1,0 +1,20 @@
+{
+  "version": 4,
+  "parent": "v3",
+  "labelOrigin": "model_assisted",
+  "humanReviewed": 0,
+  "usage": "exposed_diagnostic",
+  "tasks": 7,
+  "calibrationCases": 48,
+  "semanticCalibrationCases": 36,
+  "changes": [
+    "pilot-06 explicitly asks connection method already required by the reference; no reference facts changed",
+    "Separate semantic paraphrase/refutation/omission/overclaim cases; not independent human gold"
+  ],
+  "files": {
+    "tasks": "f5edaf1212f34df351190b9a2a01f72f95bb1b43c456c0d8acf6896e0d77c3da",
+    "task-keys": "39a7f65e847a1f10ba325d5820f38c4fca77d3e1fa6b6b14a1fe2440091766b1",
+    "grader-cases": "c39ea1f02cfb9e7d4a8aff7b4377a54f700150ff5fe2af9ddd06a73b93bb99f9",
+    "semantic-cases": "04758db0569bf1ae6f26f34c670d5705a2d3cdbad1face7e30d24de3cc810a60"
+  }
+}

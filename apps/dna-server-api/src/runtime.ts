@@ -2,7 +2,7 @@
 // the telemetry projector, and the root news-desk conversation. Close it all on shutdown.
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import type { Conversation, SubmissionId } from "@earendil-works/pi-durable";
+import type { Conversation, Harness } from "@earendil-works/pi-durable";
 import type { Context } from "@earendil-works/chord";
 import { JevClient, type Decide } from "@dna/jev";
 import type { CompactionState } from "@dna/sdk";
@@ -23,6 +23,8 @@ import { createAgents, type Agents } from "./agents/index.ts";
 import { fauxRules } from "./agents/faux-script.ts";
 import type { Config } from "./config.ts";
 import { openStore } from "./db/store.ts";
+import { budgetedHttp } from "./news/outbound-http.ts";
+import { publicFetch } from "./news/http.ts";
 import type { Deps } from "./deps.ts";
 import { Bus } from "./events.ts";
 import { Dates } from "./news/dates.ts";
@@ -32,8 +34,10 @@ import { liveHttp } from "./news/http.ts";
 import { Images } from "./news/images.ts";
 import { Quick } from "./news/quick.ts";
 import { Schedule } from "./news/schedule.ts";
-import { closeStalledSweeps, withdrawStuckSweeps } from "./news/sweep.ts";
+import { reconcileLifecycle } from "./news/lifecycle.ts";
+import { reconcileSubmissions } from "./news/submissions.ts";
 import { SearchService } from "./news/search/index.ts";
+import type { Http } from "./news/http.ts";
 
 export interface CompactionSetting {
   points: CompactionPoints;
@@ -57,25 +61,42 @@ export interface App extends Deps {
   close(): Promise<void>;
 }
 
-function decideFor(config: Config): Decide {
-  if (config.jevBackend === "fixture") return fixtureDecide();
+function decideFor(config: Config): { decide: Decide; provider: string } {
+  if (config.jevBackend === "fixture") return { decide: fixtureDecide(), provider: "fixture" };
   const client =
-    config.jevBackend === "auto" ? new JevClient() : new JevClient({ provider: config.jevBackend });
-  return (state, questions, opts) => client.systemOne(state, questions, opts);
+    config.jevBackend === "auto"
+      ? new JevClient({ maxAttempts: 1 })
+      : new JevClient({ provider: config.jevBackend, maxAttempts: 1 });
+  return {
+    decide: (state, questions, opts) => client.systemOne(state, questions, opts),
+    provider: client.provider,
+  };
 }
 
-export async function openApp(config: Config, options: { log?: Logger } = {}): Promise<App> {
+export async function openApp(
+  config: Config,
+  options: { log?: Logger; decide?: Decide; http?: Http } = {},
+): Promise<App> {
+  if (options.decide && config.provider !== "faux")
+    throw new Error("Decision injection is only supported in explicit faux mode");
   mkdirSync(config.dataDir, { recursive: true });
   const log = options.log ?? createLogger("api").child({ device: config.device });
   const store = openStore(config.dataDir, config.configDir);
-  const http = config.searchMode === "fixture" ? fixtureHttp() : liveHttp(log);
+  const http =
+    options.http ??
+    (config.searchMode === "fixture"
+      ? budgetedHttp(store, fixtureHttp())
+      : liveHttp(log, { store }));
   const catalog = createModelCatalog({
     provider: config.provider,
     installFaux: (models) => installScriptedFaux(models, fauxRules()),
     defaultModel: config.provider === "faux" ? undefined : config.model,
   });
+  const decision = options.decide
+    ? { decide: options.decide, provider: config.jevBackend === "fixture" ? "fixture" : "injected" }
+    : decideFor(config);
   const judge = new Judge({
-    decide: decideFor(config),
+    ...decision,
     store,
     log,
     dir: join(config.promptsDir, "jev"),
@@ -90,6 +111,8 @@ export async function openApp(config: Config, options: { log?: Logger } = {}): P
     },
   );
   const images = new Images({
+    fetch: (input, init) =>
+      publicFetch(String(input), init, 8 * 1024 * 1024, { store, kind: "image" }),
     store,
     http,
     log,
@@ -117,7 +140,8 @@ export async function openApp(config: Config, options: { log?: Logger } = {}): P
     dates,
     schedule: new Schedule({ store, cronSchedule: config.cronSchedule }),
   };
-  const agents = createAgents(deps);
+  let executionSession: Harness | undefined;
+  const agents = createAgents(deps, () => executionSession);
 
   const compaction: CompactionSetting = store.settings.get("compaction", {
     points: DEFAULT_POINTS,
@@ -133,6 +157,7 @@ export async function openApp(config: Config, options: { log?: Logger } = {}): P
     logger: log,
   });
   const stopProjector = startProjector(harness.harness, store.telemetry, log);
+  executionSession = harness.harness;
   const ctx = harness.ctx;
   const main = await harness.harness.root(ctx, {
     agent: { model: catalog.defaultModel, thinkingLevel: "low" },
@@ -143,18 +168,26 @@ export async function openApp(config: Config, options: { log?: Logger } = {}): P
     return { id, window: catalog.info(id)?.contextWindow ?? 1_000_000 };
   };
   window = (await mainModel()).window;
+  const startedAt = Date.now();
+  const lifecycleRuntime = { ...deps, harness, main, ctx };
+  await reconcileLifecycle(lifecycleRuntime, startedAt);
   harness.harness.resume();
 
-  const stallTimer = setInterval(() => {
-    closeStalledSweeps({ store, log, config, bus });
-    withdrawStuckSweeps(
-      { store, log, bus },
-      {
-        mainId: main.id as number,
-        withdraw: (id) => harness.harness.abortSubmission(id as SubmissionId, ctx, main.id),
-      },
-    ).catch((error) => log.warn("sweep.withdraw_failed", { error: String(error) }));
-  }, 60_000);
+  // Serialize periodic work and wait for an in-flight pass before closing the
+  // databases. Leases cover process loss; they do not prove SDK acceptance.
+  let reconciling: Promise<void> | undefined;
+  const reconcile = () =>
+    (reconciling ??= reconcileSubmissions(deps, main, ctx)
+      .then(() => reconcileLifecycle(lifecycleRuntime, startedAt))
+      .catch((error) => log.warn("sweep.reconcile_failed", { error: String(error) }))
+      .finally(() => {
+        reconciling = undefined;
+      }));
+  await reconcile();
+  const submissionTimer = setInterval(() => void reconcile(), 15_000);
+  submissionTimer.unref();
+
+  const stallTimer = setInterval(() => void reconcile(), 60_000);
   stallTimer.unref();
 
   log.info("app.opened", {
@@ -201,7 +234,9 @@ export async function openApp(config: Config, options: { log?: Logger } = {}): P
       return { ...compaction };
     },
     async close() {
+      clearInterval(submissionTimer);
       clearInterval(stallTimer);
+      await reconciling;
       stopProjector();
       await harness.close();
       store.close();

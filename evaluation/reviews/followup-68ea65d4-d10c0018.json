@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "origin": "model_assisted",
+  "reviewer": "Codex",
+  "humanReviewed": false,
+  "originalScoresModified": false,
+  "reviews": [
+    {
+      "taskId": "pilot-02",
+      "sourceExperiment": "run-68ea65d4-bb19-49e0-be12-43bc62d2b3d9",
+      "automaticOutcome": "needs_review",
+      "executionStatus": "completed",
+      "structuralChecksPassed": true,
+      "requiredFactsSatisfied": 0,
+      "requiredFactsTotal": 2,
+      "reviewDecision": "failed_task_alignment",
+      "reason": "卡片解释权限系统的 ALLOW/DENY/ASK，没有说明候选工具筛选可以限制工具集合，以及筛选本身不授予执行权限。有有效引文不等于完成题目。",
+      "selectionMode": "evidence",
+      "selectedSource": {
+        "itemId": 11,
+        "kind": "permission-system",
+        "relevance": 0.8425,
+        "importance": 0.6
+      },
+      "missedRelevantSource": {
+        "itemId": 12,
+        "kind": "tool-selection-api",
+        "relevance": 0.8075,
+        "importance": 0.74
+      },
+      "interpretation": "新鲜度降权已移除；这次是相关性判断对相邻概念区分不足，以及单候选研究策略的召回风险。不能用正确来源 ID 强制修复，需在更多相关/相邻主题反例上评估候选策略。",
+      "elapsedMs": 39596
+    },
+    {
+      "taskId": "pilot-05",
+      "sourceExperiment": "run-d10c0018-8981-4117-a43c-e3e69b4ca519",
+      "automaticOutcome": "needs_review",
+      "executionStatus": "completed",
+      "structuralChecksPassed": true,
+      "requiredFactsSatisfied": 2,
+      "requiredFactsTotal": 2,
+      "reviewDecision": "required_facts_supported",
+      "facts": [
+        {
+          "factId": "pilot-05-fact-1",
+          "answerSpan": "按该快照文档，每个 SubAgent 可以配置自己的 usage_limits，作为单次委派的请求/令牌预算；子运行使用独立用量记账，预算只计该子 Agent 的请求与令牌，不含父级或同级。",
+          "sourceSpan": "Each `SubAgent` carries its own budgets, so one delegate's controls do not touch the others.",
+          "snapshotId": 12,
+          "start": 7473,
+          "end": 7565
+        },
+        {
+          "factId": "pilot-05-fact-2",
+          "answerSpan": "按该快照文档，SubAgent 的 models 字段决定该委派可用的模型菜单键以及默认模型（列出的第一个键）。",
+          "sourceSpan": "Which keys of the `SubAgents` model menu this delegate may run on, and which one it runs on by default: the first key listed.",
+          "snapshotId": 12,
+          "start": 8406,
+          "end": 8531
+        }
+      ],
+      "interpretation": "读取日志确认使用 start_char=6000 继续阅读并检索后文。两项必答事实均有有效引文，本次是精确文本评分未接受等价表述。此结论仍为模型辅助复核，不是独立人工验收。",
+      "elapsedMs": 28404
+    }
+  ],
+  "costs": {
+    "reportedUsd": 0.005716704,
+    "estimatedUsd": 0.01432704,
+    "subtotalUsd": 0.020043744,
+    "isInvoiceTotal": false
+  },
+  "automaticPromotion": false
+}

@@ -1,4 +1,12 @@
-# Pi Durable News Agent
+# AgentRadar · 开发者技术情报
+
+AgentRadar 面向 Agent / 大模型应用开发者，保留 Pi Durable 执行、Jev 六类判断和研究子 Agent，新增可恢复扫描、逐声明来源证据及持久预算。Web 使用中文交互，首次初始化提供 8 个来源和 4 个关注主题；已有配置通过“偏好设置 → 预览差异 → 应用所选项”更新。
+
+第一次展示/学习可按 [演示与源码路线](docs/learning-and-demo.md) 运行 `node scripts/learning-demo.mjs`（Linux Node 24，已构建 Web）。现已准备 [180 份真实公开技术资料](evaluation/corpora/public-doc-updates-v1/README.md) 供试标注；这些是真实文档更新，尚未完成人工质量验收。
+
+M3 的离线产品验收与两条可重放演示见 [验收记录](docs/m3-verification.md)。M4 已提供独立 A/B/C 评测 runner、160 条合成待标注候选及 [标注/复现流程](evaluation/README.md)，工程验证见 [M4 记录](docs/m4-verification.md)。人工质量验收及三次真实付费重复尚未完成，不宣称真实质量或成本节省。来源配置和品牌保留上游包名、路由及存储兼容，原项目许可及下面的上游说明继续保留。
+
+## 上游项目说明
 
 > **This agent does not wait for you to work. It works for you, then waits, then keeps working.**
 > A proactive news agent built on pi-durable that sorts every story into Hype, Facts and Signal with jev, on your Mac, an always-on Mac mini or a cloud VM.
@@ -11,7 +19,7 @@
 
 In the age of AI there is exponentially more noise than signal: clickbait, overhyped launches and attention theft. As an engineer, your time and attention are your most important resources. This codebase is a **proactive agent** that guards them.
 
-Every few minutes a cron tick wakes a durable agent. It checks 28 sources (news feeds, Hacker News, GitHub releases, benchmark blogs) and searches the last 7 days for 15 of your topics, lets jev throw out what is off topic or not worth a look, folds repeated coverage into one story, ranks the rest by importance and keeps the top 7, sends research subagents after the strongest items, scores each one as **Hype, Facts and Signal**, and renders it as a card it picks from a fixed component catalog. Then it waits. When it crashes, restarts or loses a provider call, it resumes from its last checkpoint and never pays twice for finished work. **News worth your attention, from an agent that does not need you to start it.**
+AgentRadar 当前预设为 8 个来源、4 个关注主题，每轮默认研究 Top-K=6。Jev 执行筛选、事件关联、优先级、HFS 与声明支持判断，研究子 Agent 提供中文分析和来源引用。重启后复用已落库的成功步骤；供应商已执行但本地尚未确认的请求保留 unknown attempt，可能重复计费，所有尝试均受持久请求预算约束。工程行为以 SPEC 和离线验收记录为准，不将设计目标当作质量或成本实测结果。
 
 ---
 

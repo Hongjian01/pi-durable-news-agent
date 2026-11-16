@@ -5,6 +5,7 @@ import { Type } from "@earendil-works/pi-ai";
 import { configure, type AgentChange, type Task } from "@earendil-works/pi-durable";
 import { defineAppTool, onceInCommit, toolError, toolText } from "@dna/durable-agent";
 import type { Deps } from "../../deps.ts";
+import { execution } from "../../db/execution.ts";
 import {
   deepResearchSetting,
   MAX_DEEP_RESEARCHERS,
@@ -34,6 +35,10 @@ export function deepDiveResearch(
     },
     replay: "safe",
     execute: async (args, api, ctx) => {
+      if (execution.getStore())
+        return toolError(
+          "Accepted scans must use research_items within the frozen research plan and budget.",
+        );
       const { news } = deps.store;
       const card = args.card_id ? news.card(args.card_id) : undefined;
       if (args.card_id && !card)

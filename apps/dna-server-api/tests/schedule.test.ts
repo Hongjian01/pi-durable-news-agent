@@ -36,7 +36,7 @@ test("a scheduled tick is due once per interval slot, never when off", async () 
   }
 });
 
-test("a sweep whose agent run already ended is closed at once instead of skipping every tick", async () => {
+test("legacy telemetry projections do not close sweeps or create stalled outcomes", async () => {
   const { closeStalledSweeps } = await import("../src/news/sweep.ts");
   const { Bus } = await import("../src/events.ts");
   const { store, cleanup } = tempStore();
@@ -63,18 +63,15 @@ test("a sweep whose agent run already ended is closed at once instead of skippin
       },
     } as any;
     closeStalledSweeps({ store, log, bus: new Bus(), config: { stallMinutes: 30 } as any });
-    assert.equal(store.sweeps.get(open.id)!.status, "stalled");
-    assert.match(
-      store.sweeps.get(open.id)!.error!,
-      /run ended \(unanswered\) before complete_sweep/,
-    );
+    assert.equal(store.sweeps.get(open.id)!.status, "running");
+    assert.equal(store.sweeps.get(open.id)!.error, undefined);
     assert.equal(store.sweeps.get(fresh.id)!.status, "running", "a sweep still at work stays open");
   } finally {
     cleanup();
   }
 });
 
-test("a sweep queued behind a failed run is withdrawn from the inbox and closed, so the next tick can start", async () => {
+test("legacy withdrawal does not infer execution failure from a telemetry projection", async () => {
   const { withdrawStuckSweeps } = await import("../src/news/sweep.ts");
   const { Bus } = await import("../src/events.ts");
   const { store, cleanup } = tempStore();
@@ -96,9 +93,8 @@ test("a sweep queued behind a failed run is withdrawn from the inbox and closed,
     assert.equal(store.sweeps.get(queued.id)!.status, "queued", "behind a working run it waits");
     store.db.prepare("UPDATE agent_runs SET status = 'unanswered', ended_at = ?").run(failed);
     await withdrawStuckSweeps({ store, log, bus: new Bus() }, queue);
-    assert.deepEqual(withdrawn, [40]);
-    assert.equal(store.sweeps.get(queued.id)!.status, "stalled");
-    assert.match(store.sweeps.get(queued.id)!.error!, /failed, so it was withdrawn/);
+    assert.deepEqual(withdrawn, []);
+    assert.equal(store.sweeps.get(queued.id)!.status, "queued");
   } finally {
     cleanup();
   }

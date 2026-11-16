@@ -1,0 +1,62 @@
+name: Agent evaluation live
+on:
+  schedule:
+    # 01:17 UTC = 09:17 Asia/Shanghai. Runs on the default branch.
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+    inputs:
+      accept_paid_calls:
+        description: 'Enable paid calls. DeepSeek charges are outside the OpenRouter $1 credit limit.'
+        type: boolean
+        required: true
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: evaluation-live
+  cancel-in-progress: false
+jobs:
+  live:
+    name: Agent evaluation / live development baseline
+    if: (github.event_name == 'schedule' || inputs.accept_paid_calls) && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    environment: agent-evaluation-live
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DNA_ENV_FILE: none
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - run: npm ci
+      - name: Preflight (no paid model requests)
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: node scripts/eval-tasks/live-preflight.mjs
+      - name: Run live tasks and same-model review
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DNA_COST_ALERT_USD: '1'
+        run: |
+          test -n "$OPENROUTER_API_KEY" || { echo 'Missing OPENROUTER_API_KEY'; exit 1; }
+          test -n "$DEEPSEEK_API_KEY" || { echo 'Missing DEEPSEEK_API_KEY'; exit 1; }
+          npm run eval:tasks -- --config evaluation/experiment.v4.json --backend live --research-candidates 2 --out test-results/ci-live --enable-paid --max-usd 1 --budget-scope openrouter-credits
+          npm run eval:regrade -- --input test-results/ci-live --out test-results/ci-live-review --judge-provider deepseek --judge-model deepseek-flash --enable-paid
+      - name: Require all seven reviewed tasks to pass
+        run: node scripts/eval-tasks/ci-gate.mjs --input test-results/ci-live --mode live --review test-results/ci-live-review
+      - name: Publish run summary
+        if: always()
+        env:
+          EVAL_JOB_STATUS: ${{ job.status }}
+        run: node scripts/eval-tasks/ci-summary.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-evaluation-live-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 30

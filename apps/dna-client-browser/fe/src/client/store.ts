@@ -46,6 +46,7 @@ export function onFrame(fn: (frame: Frame) => void): () => void {
 
 /** True once the first snapshot (feed, sweeps, agent) has loaded. */
 export const loaded = ref(false);
+export const bookmarks = ref<number[]>([]);
 
 export const toast = ref<{ text: string; kind: "info" | "bad" }>();
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
@@ -73,14 +74,16 @@ export async function refreshInfo() {
 }
 
 async function loadSnapshot() {
-  const [i, page, sweeps, questions, state] = await Promise.all([
+  const [i, page, sweeps, questions, state, saved] = await Promise.all([
     api.info(),
     api.feed({ limit: 1000 }),
     api.sweeps({ limit: 30 }),
     api.questions("open"),
     api.agent(),
+    api.bookmarks(),
   ]);
   info.value = i;
+  bookmarks.value = saved;
   feed.load({ cards: page.items, sweeps, questions, agent: state });
   loaded.value = true;
 }

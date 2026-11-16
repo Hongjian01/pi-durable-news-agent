@@ -12,6 +12,17 @@
     "node": ">=24"
   },
   "scripts": {
+    "eval:tasks": "node scripts/eval-tasks/run.mjs",
+    "eval:auto": "node scripts/eval-tasks/run.mjs --components",
+    "eval:calibrate": "node scripts/eval-tasks/calibrate.mjs",
+    "eval:prepare": "node scripts/eval-tasks/prepare.mjs",
+    "eval:prepare-adjacent":"node scripts/eval-tasks/prepare-adjacent.mjs",
+    "eval:candidates":"bash scripts/eval-tasks/candidate-campaign.sh",
+    "eval:capture": "node scripts/eval-tasks/flywheel.mjs",
+    "eval:regrade": "node scripts/eval-tasks/regrade.mjs",
+    "eval:jev-check": "node --import tsx scripts/eval-tasks/check-jev.mjs",
+    "eval:prepare-v4":"node scripts/eval-tasks/prepare-v4.mjs",
+    "eval:selection-replay":"node --import tsx scripts/eval-tasks/selection-replay.mjs",
     "check": "npm run check --workspaces --if-present",
     "test": "npm test --workspaces --if-present",
     "lint": "oxlint apps/dna-* apps/shared",

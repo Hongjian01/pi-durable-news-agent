@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "id": "pilot-v4-k2",
+  "scope": "exposed_development_regression",
+  "sourceExperiment": "pilot-suite-k2-1794839214",
+  "sourceReviewSha256": "11a48b7a9cf271ae4d688609fddb23b2ea93a5089a681f9ef5bca3bd144a32cd",
+  "corpus": "evaluation/corpora/public-doc-updates-v1",
+  "labels": "evaluation/annotations/v4",
+  "judgeProtocol": "coverage-separated-v4",
+  "researchCandidates": 2,
+  "labelOrigin": "model_assisted",
+  "humanReviewed": false,
+  "independent": false,
+  "productionDefaultChanged": false,
+  "tasks": [
+    {
+      "taskId": "pilot-01",
+      "inputHash": "dc8297804362605085e4fd1f9fc5eb59e428d9249a55b375105f4ebb4dc551a6",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-02",
+      "inputHash": "5b09f1ce346e345519d09fbaf04fb74c49c6c4b660923ee9d580032cb359a3b2",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-03",
+      "inputHash": "c48ee49756434c1f5a3799a92d7ba415e6875e701985a3344543eb345cecb3de",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-04",
+      "inputHash": "e3fa42448c9f6d89c1ab40cad588ff98339d247f9489ff8cb10e2f6dac4e7d9d",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-05",
+      "inputHash": "29fda05ea55fe718554eac23c9e07d35e8d10ddb4eee8612a73fa7c9ee62fd1d",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-06",
+      "inputHash": "9ec9e44b635b2719325e203ab2e9c57e43666d9fd052a6134f8a353404a9b97c",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "completed",
+      "expectedCards": 1
+    },
+    {
+      "taskId": "pilot-empty",
+      "inputHash": "9626b18c49d28e8ef088b248fd46b4c814e5fc2198c397a1dc506f033968baf0",
+      "expectedLiveOutcome": "passed",
+      "expectedTerminal": "no_news",
+      "expectedCards": 0
+    }
+  ]
+}

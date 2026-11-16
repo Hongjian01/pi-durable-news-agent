@@ -100,7 +100,7 @@ async function compactNow() {
 
 <template>
   <section class="context-line" data-cap="agent.compaction" aria-label="Context">
-    <span class="eyebrow">Context</span>
+    <span class="eyebrow">上下文</span>
     <div
       ref="bar"
       class="context-bar"

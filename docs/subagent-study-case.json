@@ -1,0 +1,909 @@
+{
+  "metadata": {
+    "kind": "paper-teaching-case",
+    "executed": false,
+    "date": "2026-10-30",
+    "note": "虚构固定数据；归一化视图不是原始供应商协议，新增 selected 为教学关联视图。模型名仅作教学符号，不是可调用模型。"
+  },
+  "scope": {
+    "sweepId": 42,
+    "contextId": 77,
+    "epoch": 0,
+    "status": "running",
+    "researchToolTaskId": 500,
+    "referenceTime": "2026-10-30T01:00:00Z",
+    "startedAt": "2026-10-30T01:00:00Z",
+    "deadlineAt": "2026-10-30T01:05:00Z"
+  },
+  "call": {
+    "sweep_id": 42,
+    "batches": [
+      {
+        "item_ids": [
+          101,
+          102,
+          103
+        ],
+        "focus": "核实版本是否已发布并保留原文证据"
+      },
+      {
+        "item_ids": [
+          104,
+          105,
+          106
+        ],
+        "focus": "核实版本是否已发布并保留原文证据"
+      }
+    ]
+  },
+  "batches": [
+    {
+      "index": 0,
+      "conversationId": 201,
+      "ownerTaskId": 500,
+      "submissionId": 901,
+      "requestId": "research:500:0",
+      "binding": {
+        "sweepId": 42,
+        "epoch": 0,
+        "itemIds": [
+          101,
+          102,
+          103
+        ],
+        "deadline": 1793322300000,
+        "system": "# Purpose\n\nYou are a news researcher for the Durable News Agent. The news desk hands you a batch of items. For each one you verify what it claims, judge how actionable it is, and report findings the desk can rank and present.\n\n## Instructions\n\n- Work silently between tool calls. Do not narrate.\n- Read each item with read_item. Use scrape_url only when the cached text is too thin to judge.\n- Use search_web only to confirm a claim that matters, at most once per item.\n- Use jev as much as you can: run jev_classify with command claim-support on the claims you extract, and command hfs when the desk asked for it.\n- Extract at most five concrete claims per item: versions, dates, numbers, availability, breaking changes.\n- For every claim pass citations to report_findings: claim_index, snapshot_id, exact quote and UTF-16 start/end offsets from the saved normalized body shown by read_item/scrape_url. Preserve the body_hash. A URL or your own summary is not evidence. Fetch outside sources before citing them. Missing, truncated or conflicting evidence must remain insufficient/conflicting rather than a verified fact.\n- Actionability: high means an engineer should act this week, medium means soon, low means background, none means nothing to do.\n- Call report_findings exactly once per item, then answer with one line per item.\n\n## Tools\n\nread_item, scrape_url, search_web, jev_classify, report_findings.\n\n## Report\n\nOne line per item: the item id and the finding in a short sentence.\n\n# AgentRadar 中文研究交付\n\n研究摘要和最多五条事实声明使用简体中文。引用 quote 必须保持抓取快照中的原文，不能翻译后冒充引用。缺少材料时明确证据不足，不猜测、不补造原文。\n"
+      },
+      "agent": {
+        "requestedModel": "teaching-research-model",
+        "thinkingLevel": "low",
+        "tools": [
+          "read_item",
+          "scrape_url",
+          "search_web",
+          "jev_classify",
+          "report_findings"
+        ]
+      },
+      "userPrompt": "# Purpose\n\nResearch these items for sweep 42.\n\n## Variables\n\nITEMS: #101 OrbitKit 2.4 发布：增加可恢复会话 (OrbitKit Official) https://orbitkit.example/releases/2.4\n#102 QueryNest 1.8 发布：增加混合检索 (QueryNest Official) https://querynest.example/releases/1.8\n#103 ToolBridge 3.1 发布：增加工具参数校验 (ToolBridge Official) https://toolbridge.example/releases/3.1\nFOCUS: 核实版本是否已发布并保留原文证据\n\n## Workflow\n\n1. For each item in ITEMS, call read_item.\n2. Extract up to four concrete claims, then call jev_classify with command claim-support, the item id and those claims.\n3. Call report_findings for the item with a one sentence summary, the claims, evidence urls and actionability.\n\n## Definition Of Done\n\n- read_item ran for every item in ITEMS\n- report_findings ran exactly once for every item in ITEMS\n- your answer has one line per item\n\n## Report\n\nOne line per item: \"#<item id> <finding>\". No dashes, no bullet dots.\n",
+      "normalizedResult": {
+        "index": 0,
+        "conversationId": 201,
+        "status": "done",
+        "answerText": "#101 OrbitKit 已发布 2.4 版本；建议先阅读兼容性与限制说明。\n#102 QueryNest 已发布 1.8 版本；建议先阅读兼容性与限制说明。\n#103 ToolBridge 已发布 3.1 版本；建议先阅读兼容性与限制说明。"
+      },
+      "plannedModelRequests": 4
+    },
+    {
+      "index": 1,
+      "conversationId": 202,
+      "ownerTaskId": 500,
+      "submissionId": 902,
+      "requestId": "research:500:1",
+      "binding": {
+        "sweepId": 42,
+        "epoch": 0,
+        "itemIds": [
+          104,
+          105,
+          106
+        ],
+        "deadline": 1793322300000,
+        "system": "# Purpose\n\nYou are a news researcher for the Durable News Agent. The news desk hands you a batch of items. For each one you verify what it claims, judge how actionable it is, and report findings the desk can rank and present.\n\n## Instructions\n\n- Work silently between tool calls. Do not narrate.\n- Read each item with read_item. Use scrape_url only when the cached text is too thin to judge.\n- Use search_web only to confirm a claim that matters, at most once per item.\n- Use jev as much as you can: run jev_classify with command claim-support on the claims you extract, and command hfs when the desk asked for it.\n- Extract at most five concrete claims per item: versions, dates, numbers, availability, breaking changes.\n- For every claim pass citations to report_findings: claim_index, snapshot_id, exact quote and UTF-16 start/end offsets from the saved normalized body shown by read_item/scrape_url. Preserve the body_hash. A URL or your own summary is not evidence. Fetch outside sources before citing them. Missing, truncated or conflicting evidence must remain insufficient/conflicting rather than a verified fact.\n- Actionability: high means an engineer should act this week, medium means soon, low means background, none means nothing to do.\n- Call report_findings exactly once per item, then answer with one line per item.\n\n## Tools\n\nread_item, scrape_url, search_web, jev_classify, report_findings.\n\n## Report\n\nOne line per item: the item id and the finding in a short sentence.\n\n# AgentRadar 中文研究交付\n\n研究摘要和最多五条事实声明使用简体中文。引用 quote 必须保持抓取快照中的原文，不能翻译后冒充引用。缺少材料时明确证据不足，不猜测、不补造原文。\n"
+      },
+      "agent": {
+        "requestedModel": "teaching-research-model",
+        "thinkingLevel": "low",
+        "tools": [
+          "read_item",
+          "scrape_url",
+          "search_web",
+          "jev_classify",
+          "report_findings"
+        ]
+      },
+      "userPrompt": "# Purpose\n\nResearch these items for sweep 42.\n\n## Variables\n\nITEMS: #104 CacheLeaf 0.9 发布：增加版本化缓存 (CacheLeaf Official) https://cacheleaf.example/releases/0.9\n#105 TraceDock 1.2 发布：增加执行轨迹 (TraceDock Official) https://tracedock.example/releases/1.2\n#106 EvalHarbor 2.0 发布：增加冻结评测集 (EvalHarbor Official) https://evalharbor.example/releases/2.0\nFOCUS: 核实版本是否已发布并保留原文证据\n\n## Workflow\n\n1. For each item in ITEMS, call read_item.\n2. Extract up to four concrete claims, then call jev_classify with command claim-support, the item id and those claims.\n3. Call report_findings for the item with a one sentence summary, the claims, evidence urls and actionability.\n\n## Definition Of Done\n\n- read_item ran for every item in ITEMS\n- report_findings ran exactly once for every item in ITEMS\n- your answer has one line per item\n\n## Report\n\nOne line per item: \"#<item id> <finding>\". No dashes, no bullet dots.\n",
+      "normalizedResult": {
+        "index": 1,
+        "conversationId": 202,
+        "status": "done",
+        "answerText": "#104 CacheLeaf 已发布 0.9 版本；建议先阅读兼容性与限制说明。\n#105 TraceDock 已发布 1.2 版本；建议先阅读兼容性与限制说明。\n#106 EvalHarbor 已发布 2.0 版本；建议先阅读兼容性与限制说明。"
+      },
+      "plannedModelRequests": 4
+    }
+  ],
+  "records": [
+    {
+      "item": {
+        "id": 101,
+        "sweepId": 42,
+        "title": "OrbitKit 2.4 发布：增加可恢复会话",
+        "sourceName": "OrbitKit Official",
+        "url": "https://orbitkit.example/releases/2.4",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds resumable agent sessions.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 0,
+      "conversationId": 201,
+      "snapshot": {
+        "id": 301,
+        "url": "https://orbitkit.example/releases/2.4",
+        "body": "OrbitKit 2.4 is available.\nThis release adds resumable agent sessions. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "d8a9640c9f31a088a374cd83f0f71a5ef80cdf59027985f71813b98d96f8137f",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "OrbitKit 2.4 发布：增加可恢复会话",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 101,
+          "max_chars": 3000
+        },
+        "toolText": "#101 OrbitKit 2.4 发布：增加可恢复会话\nsource: OrbitKit Official | url: https://orbitkit.example/releases/2.4\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 301 | body_hash: d8a9640c9f31a088a374cd83f0f71a5ef80cdf59027985f71813b98d96f8137f | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nOrbitKit 2.4 is available.\nThis release adds resumable agent sessions. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 101,
+          "claims": [
+            "OrbitKit 2.4 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: OrbitKit 2.4 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7001,
+        "arguments": {
+          "item_id": 101,
+          "summary": "OrbitKit 已发布 2.4 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "OrbitKit 2.4 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 301,
+              "quote": "OrbitKit 2.4 is available.",
+              "start": 0,
+              "end": 26,
+              "body_hash": "d8a9640c9f31a088a374cd83f0f71a5ef80cdf59027985f71813b98d96f8137f"
+            }
+          ],
+          "evidence_urls": [
+            "https://orbitkit.example/releases/2.4"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #101: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 501,
+          "reportId": 401,
+          "claimId": 801,
+          "sweepId": 42,
+          "itemId": 101,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#101 medium actionability: OrbitKit 已发布 2.4 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    },
+    {
+      "item": {
+        "id": 102,
+        "sweepId": 42,
+        "title": "QueryNest 1.8 发布：增加混合检索",
+        "sourceName": "QueryNest Official",
+        "url": "https://querynest.example/releases/1.8",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds hybrid document retrieval.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 0,
+      "conversationId": 201,
+      "snapshot": {
+        "id": 302,
+        "url": "https://querynest.example/releases/1.8",
+        "body": "QueryNest 1.8 is available.\nThis release adds hybrid document retrieval. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "76cde268232756301bbe388aa81a38eeb721017335201f0aefb448c48d4524b5",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "QueryNest 1.8 发布：增加混合检索",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 102,
+          "max_chars": 3000
+        },
+        "toolText": "#102 QueryNest 1.8 发布：增加混合检索\nsource: QueryNest Official | url: https://querynest.example/releases/1.8\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 302 | body_hash: 76cde268232756301bbe388aa81a38eeb721017335201f0aefb448c48d4524b5 | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nQueryNest 1.8 is available.\nThis release adds hybrid document retrieval. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 102,
+          "claims": [
+            "QueryNest 1.8 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: QueryNest 1.8 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7002,
+        "arguments": {
+          "item_id": 102,
+          "summary": "QueryNest 已发布 1.8 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "QueryNest 1.8 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 302,
+              "quote": "QueryNest 1.8 is available.",
+              "start": 0,
+              "end": 27,
+              "body_hash": "76cde268232756301bbe388aa81a38eeb721017335201f0aefb448c48d4524b5"
+            }
+          ],
+          "evidence_urls": [
+            "https://querynest.example/releases/1.8"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #102: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 502,
+          "reportId": 402,
+          "claimId": 802,
+          "sweepId": 42,
+          "itemId": 102,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#102 medium actionability: QueryNest 已发布 1.8 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    },
+    {
+      "item": {
+        "id": 103,
+        "sweepId": 42,
+        "title": "ToolBridge 3.1 发布：增加工具参数校验",
+        "sourceName": "ToolBridge Official",
+        "url": "https://toolbridge.example/releases/3.1",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds typed tool input validation.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 0,
+      "conversationId": 201,
+      "snapshot": {
+        "id": 303,
+        "url": "https://toolbridge.example/releases/3.1",
+        "body": "ToolBridge 3.1 is available.\nThis release adds typed tool input validation. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "8a5e55fdcc6e3fe5bf0253bbce07e39f1b7af75c30d00dff0d1bd0fd7a88f239",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "ToolBridge 3.1 发布：增加工具参数校验",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 103,
+          "max_chars": 3000
+        },
+        "toolText": "#103 ToolBridge 3.1 发布：增加工具参数校验\nsource: ToolBridge Official | url: https://toolbridge.example/releases/3.1\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 303 | body_hash: 8a5e55fdcc6e3fe5bf0253bbce07e39f1b7af75c30d00dff0d1bd0fd7a88f239 | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nToolBridge 3.1 is available.\nThis release adds typed tool input validation. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 103,
+          "claims": [
+            "ToolBridge 3.1 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: ToolBridge 3.1 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7003,
+        "arguments": {
+          "item_id": 103,
+          "summary": "ToolBridge 已发布 3.1 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "ToolBridge 3.1 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 303,
+              "quote": "ToolBridge 3.1 is available.",
+              "start": 0,
+              "end": 28,
+              "body_hash": "8a5e55fdcc6e3fe5bf0253bbce07e39f1b7af75c30d00dff0d1bd0fd7a88f239"
+            }
+          ],
+          "evidence_urls": [
+            "https://toolbridge.example/releases/3.1"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #103: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 503,
+          "reportId": 403,
+          "claimId": 803,
+          "sweepId": 42,
+          "itemId": 103,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#103 medium actionability: ToolBridge 已发布 3.1 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    },
+    {
+      "item": {
+        "id": 104,
+        "sweepId": 42,
+        "title": "CacheLeaf 0.9 发布：增加版本化缓存",
+        "sourceName": "CacheLeaf Official",
+        "url": "https://cacheleaf.example/releases/0.9",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds versioned response caching.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 1,
+      "conversationId": 202,
+      "snapshot": {
+        "id": 304,
+        "url": "https://cacheleaf.example/releases/0.9",
+        "body": "CacheLeaf 0.9 is available.\nThis release adds versioned response caching. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "d0ade8205979341f3d5f96fb6f7e982c9b95f4240b7f4aaf012344b4f240b1d1",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "CacheLeaf 0.9 发布：增加版本化缓存",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 104,
+          "max_chars": 3000
+        },
+        "toolText": "#104 CacheLeaf 0.9 发布：增加版本化缓存\nsource: CacheLeaf Official | url: https://cacheleaf.example/releases/0.9\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 304 | body_hash: d0ade8205979341f3d5f96fb6f7e982c9b95f4240b7f4aaf012344b4f240b1d1 | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nCacheLeaf 0.9 is available.\nThis release adds versioned response caching. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 104,
+          "claims": [
+            "CacheLeaf 0.9 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: CacheLeaf 0.9 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7004,
+        "arguments": {
+          "item_id": 104,
+          "summary": "CacheLeaf 已发布 0.9 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "CacheLeaf 0.9 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 304,
+              "quote": "CacheLeaf 0.9 is available.",
+              "start": 0,
+              "end": 27,
+              "body_hash": "d0ade8205979341f3d5f96fb6f7e982c9b95f4240b7f4aaf012344b4f240b1d1"
+            }
+          ],
+          "evidence_urls": [
+            "https://cacheleaf.example/releases/0.9"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #104: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 504,
+          "reportId": 404,
+          "claimId": 804,
+          "sweepId": 42,
+          "itemId": 104,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#104 medium actionability: CacheLeaf 已发布 0.9 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    },
+    {
+      "item": {
+        "id": 105,
+        "sweepId": 42,
+        "title": "TraceDock 1.2 发布：增加执行轨迹",
+        "sourceName": "TraceDock Official",
+        "url": "https://tracedock.example/releases/1.2",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds structured agent execution traces.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 1,
+      "conversationId": 202,
+      "snapshot": {
+        "id": 305,
+        "url": "https://tracedock.example/releases/1.2",
+        "body": "TraceDock 1.2 is available.\nThis release adds structured agent execution traces. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "a8a349499b786bcf2541b15752e6d068a5d9c3b767e618442bdb8cfeb2b5c70d",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "TraceDock 1.2 发布：增加执行轨迹",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 105,
+          "max_chars": 3000
+        },
+        "toolText": "#105 TraceDock 1.2 发布：增加执行轨迹\nsource: TraceDock Official | url: https://tracedock.example/releases/1.2\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 305 | body_hash: a8a349499b786bcf2541b15752e6d068a5d9c3b767e618442bdb8cfeb2b5c70d | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nTraceDock 1.2 is available.\nThis release adds structured agent execution traces. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 105,
+          "claims": [
+            "TraceDock 1.2 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: TraceDock 1.2 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7005,
+        "arguments": {
+          "item_id": 105,
+          "summary": "TraceDock 已发布 1.2 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "TraceDock 1.2 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 305,
+              "quote": "TraceDock 1.2 is available.",
+              "start": 0,
+              "end": 27,
+              "body_hash": "a8a349499b786bcf2541b15752e6d068a5d9c3b767e618442bdb8cfeb2b5c70d"
+            }
+          ],
+          "evidence_urls": [
+            "https://tracedock.example/releases/1.2"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #105: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 505,
+          "reportId": 405,
+          "claimId": 805,
+          "sweepId": 42,
+          "itemId": 105,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#105 medium actionability: TraceDock 已发布 1.2 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    },
+    {
+      "item": {
+        "id": 106,
+        "sweepId": 42,
+        "title": "EvalHarbor 2.0 发布：增加冻结评测集",
+        "sourceName": "EvalHarbor Official",
+        "url": "https://evalharbor.example/releases/2.0",
+        "publishedAt": "2026-10-29T01:00:00Z",
+        "excerpt": "This release adds frozen evaluation datasets.",
+        "status": "candidate",
+        "relevance": 0.9,
+        "worth": 0.85,
+        "selected": 1
+      },
+      "batchIndex": 1,
+      "conversationId": 202,
+      "snapshot": {
+        "id": 306,
+        "url": "https://evalharbor.example/releases/2.0",
+        "body": "EvalHarbor 2.0 is available.\nThis release adds frozen evaluation datasets. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.",
+        "body_hash": "8a086f0362eb0911c9537fda909905b43eebc991a7a3bddc5b15c739af0ef286",
+        "fetched_at": "2026-10-30T01:00:20Z",
+        "title": "EvalHarbor 2.0 发布：增加冻结评测集",
+        "truncated": 0,
+        "extract_version": "readability-v1+nfc-lf"
+      },
+      "readItem": {
+        "arguments": {
+          "item_id": 106,
+          "max_chars": 3000
+        },
+        "toolText": "#106 EvalHarbor 2.0 发布：增加冻结评测集\nsource: EvalHarbor Official | url: https://evalharbor.example/releases/2.0\npublished: 2026-10-29T01:00:00Z | status: researching | relevance 90 | worth 85\njev hfs: not classified yet\n\nsnapshot: 306 | body_hash: 8a086f0362eb0911c9537fda909905b43eebc991a7a3bddc5b15c739af0ef286 | fetched_at: 2026-10-30T01:00:20Z | offsets: UTF-16\n[snapshot text]\nEvalHarbor 2.0 is available.\nThis release adds frozen evaluation datasets. The release notes describe configuration, expected behavior, and documented limitations. Developers should review compatibility before updating their applications. This announcement does not claim independent verification, universal reliability, or measured cost savings.\n[/snapshot text]"
+      },
+      "preliminaryClassification": {
+        "arguments": {
+          "command": "claim-support",
+          "item_id": 106,
+          "claims": [
+            "EvalHarbor 2.0 版本已发布"
+          ]
+        },
+        "normalizedScore": 0.9,
+        "toolText": "supported 90: EvalHarbor 2.0 版本已发布"
+      },
+      "reportFindings": {
+        "taskId": 7006,
+        "arguments": {
+          "item_id": 106,
+          "summary": "EvalHarbor 已发布 2.0 版本；建议先阅读兼容性与限制说明。",
+          "claims": [
+            "EvalHarbor 2.0 版本已发布"
+          ],
+          "citations": [
+            {
+              "claim_index": 0,
+              "snapshot_id": 306,
+              "quote": "EvalHarbor 2.0 is available.",
+              "start": 0,
+              "end": 28,
+              "body_hash": "8a086f0362eb0911c9537fda909905b43eebc991a7a3bddc5b15c739af0ef286"
+            }
+          ],
+          "evidence_urls": [
+            "https://evalharbor.example/releases/2.0"
+          ],
+          "actionability": "medium"
+        },
+        "assessment": {
+          "supported": 0.9,
+          "sufficient": 0.9,
+          "conflicting": 0.1,
+          "status": "supported"
+        },
+        "toolText": "Saved findings for #106: 1 of 1 claims supported.",
+        "persisted": {
+          "findingId": 506,
+          "reportId": 406,
+          "claimId": 806,
+          "sweepId": 42,
+          "itemId": 106,
+          "researchStatus": "completed",
+          "disposition": "selected",
+          "cardId": null
+        }
+      },
+      "parentSummary": "#106 medium actionability: EvalHarbor 已发布 2.0 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)"
+    }
+  ],
+  "researchJob": {
+    "taskId": 500,
+    "sweepId": 42,
+    "epoch": 0,
+    "itemIds": [
+      101,
+      102,
+      103,
+      104,
+      105,
+      106
+    ],
+    "initialStatus": "running",
+    "normalFinalStatus": "completed",
+    "deadlineAt": "2026-10-30T01:05:00Z"
+  },
+  "parentToolResult": {
+    "text": "#101 medium actionability: OrbitKit 已发布 2.4 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)\n#102 medium actionability: QueryNest 已发布 1.8 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)\n#103 medium actionability: ToolBridge 已发布 3.1 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)\n#104 medium actionability: CacheLeaf 已发布 0.9 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)\n#105 medium actionability: TraceDock 已发布 1.2 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)\n#106 medium actionability: EvalHarbor 已发布 2.0 版本；建议先阅读兼容性与限制说明。 (1 of 1 claims supported)",
+    "details": {
+      "children": [
+        201,
+        202
+      ]
+    }
+  },
+  "normalAccounting": {
+    "researchModelRequests": 8,
+    "modelRequestsPerItem": 4,
+    "preliminaryJevRequests": 6,
+    "reportAssessmentJevRequests": 6,
+    "readItemCalls": 6,
+    "reportFindingsCalls": 6,
+    "researchReports": 6,
+    "newsCardsCreatedByResearch": 0,
+    "actualUsd": null
+  },
+  "modelRequestLedger": [
+    {
+      "id": 10001,
+      "conversationId": 201,
+      "generationOrdinal": 1,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        101,
+        102,
+        103
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个 read_item 调用"
+    },
+    {
+      "id": 10002,
+      "conversationId": 202,
+      "generationOrdinal": 1,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        104,
+        105,
+        106
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个 read_item 调用"
+    },
+    {
+      "id": 10003,
+      "conversationId": 201,
+      "generationOrdinal": 2,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        101,
+        102,
+        103
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个初步 claim-support 调用"
+    },
+    {
+      "id": 10004,
+      "conversationId": 202,
+      "generationOrdinal": 2,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        104,
+        105,
+        106
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个初步 claim-support 调用"
+    },
+    {
+      "id": 10005,
+      "conversationId": 201,
+      "generationOrdinal": 3,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        101,
+        102,
+        103
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个 report_findings 调用"
+    },
+    {
+      "id": 10006,
+      "conversationId": 202,
+      "generationOrdinal": 3,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        104,
+        105,
+        106
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "提出三个 report_findings 调用"
+    },
+    {
+      "id": 10007,
+      "conversationId": 201,
+      "generationOrdinal": 4,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        101,
+        102,
+        103
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "返回每项一行总结"
+    },
+    {
+      "id": 10008,
+      "conversationId": 202,
+      "generationOrdinal": 4,
+      "sweepId": 42,
+      "kind": "research_model",
+      "itemIds": [
+        104,
+        105,
+        106
+      ],
+      "status": "succeeded",
+      "costUsd": null,
+      "costSource": "unknown",
+      "purpose": "返回每项一行总结"
+    }
+  ],
+  "teachingTimeline": [
+    {
+      "at": "2026-10-30T01:00:00Z",
+      "event": "teaching_tool_accepted",
+      "taskId": 500,
+      "sweepId": 42
+    },
+    {
+      "at": "2026-10-30T01:00:01Z",
+      "event": "teaching_children_committed",
+      "ownerTaskId": 500,
+      "conversationIds": [
+        201,
+        202
+      ]
+    },
+    {
+      "at": "2026-10-30T01:00:02Z",
+      "event": "teaching_submissions_admitted",
+      "submissionIds": [
+        901,
+        902
+      ],
+      "requestIds": [
+        "research:500:0",
+        "research:500:1"
+      ]
+    },
+    {
+      "at": "2026-10-30T01:00:05Z",
+      "event": "teaching_model_generation",
+      "conversationId": 201,
+      "ordinal": 1,
+      "reservationId": 10001
+    },
+    {
+      "at": "2026-10-30T01:00:05Z",
+      "event": "teaching_model_generation",
+      "conversationId": 202,
+      "ordinal": 1,
+      "reservationId": 10002
+    },
+    {
+      "at": "2026-10-30T01:00:25Z",
+      "event": "teaching_model_generation",
+      "conversationId": 201,
+      "ordinal": 2,
+      "reservationId": 10003
+    },
+    {
+      "at": "2026-10-30T01:00:25Z",
+      "event": "teaching_model_generation",
+      "conversationId": 202,
+      "ordinal": 2,
+      "reservationId": 10004
+    },
+    {
+      "at": "2026-10-30T01:00:40Z",
+      "event": "teaching_model_generation",
+      "conversationId": 201,
+      "ordinal": 3,
+      "reservationId": 10005
+    },
+    {
+      "at": "2026-10-30T01:00:40Z",
+      "event": "teaching_model_generation",
+      "conversationId": 202,
+      "ordinal": 3,
+      "reservationId": 10006
+    },
+    {
+      "at": "2026-10-30T01:01:00Z",
+      "event": "teaching_model_generation",
+      "conversationId": 201,
+      "ordinal": 4,
+      "reservationId": 10007
+    },
+    {
+      "at": "2026-10-30T01:01:00Z",
+      "event": "teaching_model_generation",
+      "conversationId": 202,
+      "ordinal": 4,
+      "reservationId": 10008
+    },
+    {
+      "at": "2026-10-30T01:01:05Z",
+      "event": "teaching_research_tool_returned",
+      "taskId": 500,
+      "children": [
+        201,
+        202
+      ],
+      "reports": [
+        401,
+        402,
+        403,
+        404,
+        405,
+        406
+      ],
+      "newNewsCards": 0,
+      "sweepStillRunning": true
+    }
+  ]
+}

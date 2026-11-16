@@ -1,0 +1,242 @@
+{
+  "sourceRevision": "working-copy",
+  "startedAt": "2026-10-26T16:17:34.101Z",
+  "platform": "linux",
+  "node": "v24.21.0",
+  "executable": "/home/hongjian/.nvm/versions/node/v24.21.0/bin/node",
+  "lockSha256": "2d61a1e8410b1fba5704ad7a5d65b1be1a365e1499d1567e44f016f351939a37",
+  "paidApi": false,
+  "results": [
+    {
+      "name": "types",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 15059
+    },
+    {
+      "name": "dnajev",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/jev"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 347,
+      "tests": 19,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dnadurable-agent",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/durable-agent"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3079,
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dnasdk",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/sdk"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 342,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-server-api",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-api"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 35069,
+      "tests": 113,
+      "pass": 112,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dna-server-cron",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-cron"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2264,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-cli",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-cli"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 7388,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-client-tui",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-client-tui"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 518,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "hub",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-client-browser/hub/tests/*.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 99,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "-w",
+        "dna-client-browser"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 4033
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 231
+    },
+    {
+      "name": "format",
+      "command": [
+        "npm",
+        "run",
+        "fmt:check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1361
+    },
+    {
+      "name": "faux-recovery",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-server-api/tests/sweep-faux.test.ts",
+        "apps/dna-server-api/tests/recovery.test.ts",
+        "apps/dna-server-api/tests/auth.test.ts",
+        "apps/dna-server-api/tests/workflow.test.ts",
+        "apps/dna-server-api/tests/stream.test.ts",
+        "apps/dna-server-api/tests/executions.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 12753,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-ui",
+      "command": [
+        "node",
+        "apps/dna-client-browser/tests/ui-faux.mjs"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 18039
+    }
+  ],
+  "finishedAt": "2026-10-26T16:19:14.691Z"
+}

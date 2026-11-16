@@ -1,0 +1,1410 @@
+{
+  "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+  "corpusFingerprint": "ca54e46c04c7c0243dff259dcb614f6c941c62ab33628428f907b06fc4ecd0b8",
+  "backend": "fixture",
+  "split": "test",
+  "paidApi": false,
+  "repeats": 3,
+  "annotationStatus": {
+    "samples": 160,
+    "resolved": 0,
+    "primary": 0,
+    "reviewed": 0,
+    "reviewCoverage": 0,
+    "coverageBySplit": {
+      "dev": {
+        "samples": 40,
+        "reviewed": 0,
+        "fraction": 0
+      },
+      "test": {
+        "samples": 120,
+        "reviewed": 0,
+        "fraction": 0
+      }
+    },
+    "agreementDefinition": "Exact agreement on label fields excluding rationale; per-field agreement also reported",
+    "agreementByField": {
+      "relevant": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "useful": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "duplicateOf": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "relation": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "hype": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "facts": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      },
+      "signal": {
+        "numerator": 0,
+        "denominator": 0,
+        "value": null
+      }
+    },
+    "agreement": {
+      "numerator": 0,
+      "denominator": 0,
+      "value": null
+    },
+    "unresolved": [
+      "dev-000-0",
+      "dev-000-1",
+      "dev-001-0",
+      "dev-001-1",
+      "dev-002-0",
+      "dev-002-1",
+      "dev-003-0",
+      "dev-003-1",
+      "dev-004-0",
+      "dev-004-1",
+      "dev-005-0",
+      "dev-005-1",
+      "dev-006-0",
+      "dev-006-1",
+      "dev-007-0",
+      "dev-007-1",
+      "dev-008-0",
+      "dev-008-1",
+      "dev-009-0",
+      "dev-009-1",
+      "dev-010-0",
+      "dev-010-1",
+      "dev-011-0",
+      "dev-011-1",
+      "dev-012-0",
+      "dev-012-1",
+      "dev-013-0",
+      "dev-013-1",
+      "dev-014-0",
+      "dev-014-1",
+      "dev-015-0",
+      "dev-015-1",
+      "dev-016-0",
+      "dev-016-1",
+      "dev-017-0",
+      "dev-017-1",
+      "dev-018-0",
+      "dev-018-1",
+      "dev-019-0",
+      "dev-019-1",
+      "test-020-0",
+      "test-020-1",
+      "test-021-0",
+      "test-021-1",
+      "test-022-0",
+      "test-022-1",
+      "test-023-0",
+      "test-023-1",
+      "test-024-0",
+      "test-024-1",
+      "test-025-0",
+      "test-025-1",
+      "test-026-0",
+      "test-026-1",
+      "test-027-0",
+      "test-027-1",
+      "test-028-0",
+      "test-028-1",
+      "test-029-0",
+      "test-029-1",
+      "test-030-0",
+      "test-030-1",
+      "test-031-0",
+      "test-031-1",
+      "test-032-0",
+      "test-032-1",
+      "test-033-0",
+      "test-033-1",
+      "test-034-0",
+      "test-034-1",
+      "test-035-0",
+      "test-035-1",
+      "test-036-0",
+      "test-036-1",
+      "test-037-0",
+      "test-037-1",
+      "test-038-0",
+      "test-038-1",
+      "test-039-0",
+      "test-039-1",
+      "test-040-0",
+      "test-040-1",
+      "test-041-0",
+      "test-041-1",
+      "test-042-0",
+      "test-042-1",
+      "test-043-0",
+      "test-043-1",
+      "test-044-0",
+      "test-044-1",
+      "test-045-0",
+      "test-045-1",
+      "test-046-0",
+      "test-046-1",
+      "test-047-0",
+      "test-047-1",
+      "test-048-0",
+      "test-048-1",
+      "test-049-0",
+      "test-049-1",
+      "test-050-0",
+      "test-050-1",
+      "test-051-0",
+      "test-051-1",
+      "test-052-0",
+      "test-052-1",
+      "test-053-0",
+      "test-053-1",
+      "test-054-0",
+      "test-054-1",
+      "test-055-0",
+      "test-055-1",
+      "test-056-0",
+      "test-056-1",
+      "test-057-0",
+      "test-057-1",
+      "test-058-0",
+      "test-058-1",
+      "test-059-0",
+      "test-059-1",
+      "test-060-0",
+      "test-060-1",
+      "test-061-0",
+      "test-061-1",
+      "test-062-0",
+      "test-062-1",
+      "test-063-0",
+      "test-063-1",
+      "test-064-0",
+      "test-064-1",
+      "test-065-0",
+      "test-065-1",
+      "test-066-0",
+      "test-066-1",
+      "test-067-0",
+      "test-067-1",
+      "test-068-0",
+      "test-068-1",
+      "test-069-0",
+      "test-069-1",
+      "test-070-0",
+      "test-070-1",
+      "test-071-0",
+      "test-071-1",
+      "test-072-0",
+      "test-072-1",
+      "test-073-0",
+      "test-073-1",
+      "test-074-0",
+      "test-074-1",
+      "test-075-0",
+      "test-075-1",
+      "test-076-0",
+      "test-076-1",
+      "test-077-0",
+      "test-077-1",
+      "test-078-0",
+      "test-078-1",
+      "test-079-0",
+      "test-079-1"
+    ]
+  },
+  "realRepeats": 0,
+  "fixtureRepeats": 3,
+  "releaseReady": false,
+  "releaseBlockers": [
+    "synthetic_or_engineering_corpus",
+    "human_labels_incomplete_or_disputed",
+    "independent_review_below_20_percent",
+    "independent_review_below_20_percent_in_a_split",
+    "fewer_than_three_real_repeats",
+    "quality_targets_unmet_or_insufficient_examples"
+  ],
+  "qualityTargets": [
+    {
+      "gateRecall": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "duplicatePrecision": {
+        "target": 0.95,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "chineseCandidateRecallAt12": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      }
+    },
+    {
+      "gateRecall": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "duplicatePrecision": {
+        "target": 0.95,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "chineseCandidateRecallAt12": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      }
+    },
+    {
+      "gateRecall": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "duplicatePrecision": {
+        "target": 0.95,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      },
+      "chineseCandidateRecallAt12": {
+        "target": 0.9,
+        "observed": null,
+        "denominator": 0,
+        "interval95": null,
+        "passed": false,
+        "reason": "insufficient_examples"
+      }
+    }
+  ],
+  "repeatAccounting": "Repeated runs reuse the same labeled samples; confidence intervals are per run, never pooled as independent examples",
+  "sharedAcquisitionCountedOncePerExperiment": {
+    "requests": 0,
+    "reportedUsd": 0,
+    "estimatedUsd": 0,
+    "unknownAttempts": 0,
+    "provenance": "locally authored synthetic fixtures; no paid acquisition"
+  },
+  "coldCache": true,
+  "commonResearchModel": "anthropic/claude-haiku-5.5",
+  "commonPromptHashes": {
+    "deep-research/SYSTEM_PROMPT.md": "a4675e0e79ac32b8129b4bcfecf0b906b44edcf3dca8add6b65204aa702c9d71",
+    "deep-research/USER_PROMPT_deep_research.md": "01610484b4710336026e358353230b7b5454b471cee9c2b8c896ab89ba074816",
+    "news-desk/SYSTEM_PROMPT.md": "3fc14be91aa04ed22a1583f8385b070bfb773c2179110c2db68ccfcaeac671a4",
+    "news-desk/USER_PROMPT_deep_research_report.md": "253ec60198672b22f33296e510bfc0c5fc9989f178582931a18b7b2f464ee9df",
+    "news-desk/USER_PROMPT_news_sweep.md": "5b3d9657a35cedd3ce660b6e95212e7be12debf00591edd9a7e655439ca2c22c",
+    "news-desk/USER_PROMPT_taste_answer.md": "fb6b628c9899f227305e4ec210ccdb4de91ae25f031a6c3e68d7c00496673602",
+    "news-researcher/SYSTEM_PROMPT.md": "279783eb8d8ece0ba295e25f25e4886b6681b4e74d3b838bbdc2635d2e358ae3",
+    "news-researcher/USER_PROMPT_research.md": "1f414f67645400b2eaf4c35132b1041203de99e1c671cbdc8837672cb71fe71b"
+  },
+  "arms": {
+    "A": {
+      "eligible": [
+        120,
+        120,
+        120
+      ],
+      "selected": [
+        120,
+        120,
+        120
+      ],
+      "researched": [
+        120,
+        120,
+        120
+      ],
+      "timing": {
+        "n": 3,
+        "median": 5981,
+        "p95": null,
+        "p95Warning": "fewer_than_20_runs"
+      },
+      "runs": [
+        {
+          "directory": "repeat-1-A",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 112,
+              "denominator": 120,
+              "value": 0.9333333333333333,
+              "interval95": [
+                0.8739486959646967,
+                0.9658346931390938
+              ],
+              "sampleWarning": null
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 360,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-2-A",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 112,
+              "denominator": 120,
+              "value": 0.9333333333333333,
+              "interval95": [
+                0.8739486959646967,
+                0.9658346931390938
+              ],
+              "sampleWarning": null
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 360,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-3-A",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 112,
+              "denominator": 120,
+              "value": 0.9333333333333333,
+              "interval95": [
+                0.8739486959646967,
+                0.9658346931390938
+              ],
+              "sampleWarning": null
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 360,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        }
+      ]
+    },
+    "B": {
+      "eligible": [
+        120,
+        120,
+        120
+      ],
+      "selected": [
+        6,
+        6,
+        6
+      ],
+      "researched": [
+        6,
+        6,
+        6
+      ],
+      "timing": {
+        "n": 3,
+        "median": 2055,
+        "p95": null,
+        "p95Warning": "fewer_than_20_runs"
+      },
+      "runs": [
+        {
+          "directory": "repeat-1-B",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 4,
+              "denominator": 6,
+              "value": 0.6666666666666666,
+              "interval95": [
+                0.299993315138392,
+                0.9032285888942195
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-2-B",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 4,
+              "denominator": 6,
+              "value": 0.6666666666666666,
+              "interval95": [
+                0.299993315138392,
+                0.9032285888942195
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-3-B",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 4,
+              "denominator": 6,
+              "value": 0.6666666666666666,
+              "interval95": [
+                0.299993315138392,
+                0.9032285888942195
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        }
+      ]
+    },
+    "C": {
+      "eligible": [
+        120,
+        120,
+        120
+      ],
+      "selected": [
+        6,
+        6,
+        6
+      ],
+      "researched": [
+        6,
+        6,
+        6
+      ],
+      "timing": {
+        "n": 3,
+        "median": 415,
+        "p95": null,
+        "p95Warning": "fewer_than_20_runs"
+      },
+      "runs": [
+        {
+          "directory": "repeat-1-C",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 6,
+              "denominator": 6,
+              "value": 1,
+              "interval95": [
+                0.6096657120978346,
+                1
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-2-C",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 6,
+              "denominator": 6,
+              "value": 1,
+              "interval95": [
+                0.6096657120978346,
+                1
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        },
+        {
+          "directory": "repeat-3-C",
+          "status": "no_news",
+          "metrics": {
+            "labelCoverage": {
+              "numerator": 0,
+              "denominator": 120,
+              "value": 0,
+              "interval95": [
+                0,
+                0.031019166418703486
+              ],
+              "sampleWarning": null
+            },
+            "gateRecall": {
+              "value": null,
+              "reason": "gate_not_applied_in_this_arm"
+            },
+            "gateTechnicalErrors": 0,
+            "duplicatePrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "chineseCandidateRecallAt12": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "researchTopKPrecision": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "retainedUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "deliveredUsefulCoverage": {
+              "numerator": 0,
+              "denominator": 0,
+              "value": null,
+              "interval95": null,
+              "sampleWarning": "no_labeled_examples"
+            },
+            "sourceSupportedClaimShare": {
+              "numerator": 6,
+              "denominator": 6,
+              "value": 1,
+              "interval95": [
+                0.6096657120978346,
+                1
+              ],
+              "sampleWarning": "fewer_than_20_examples"
+            },
+            "hfsMeanAbsoluteError": null,
+            "meaning": "Human quality metrics require independent annotations; source-supported share is server validation, not human factual accuracy"
+          },
+          "costs": {
+            "byKind": [
+              {
+                "kind": "research_model",
+                "requests": 18,
+                "unknown_cost_attempts": 0,
+                "unknown_execution_attempts": 0,
+                "reported_usd": 0,
+                "estimated_usd": 0,
+                "cost_coverage": 1
+              }
+            ],
+            "knownUsd": 0,
+            "actualUsd": null,
+            "pricingBasis": "Provider-reported and estimated amounts are separate; no audited invoice cost",
+            "unknownCostAttempts": 0,
+            "knownCostCoverage": 1,
+            "cacheReferences": 0,
+            "cacheStudy": "cold arm databases; intra-run cache references listed separately",
+            "sharedAcquisition": {
+              "requests": 0,
+              "reportedUsd": 0,
+              "estimatedUsd": 0,
+              "unknownAttempts": 0,
+              "provenance": "locally authored synthetic fixtures; no paid acquisition"
+            },
+            "marginalDecisionKnownUsd": 0,
+            "totalKnownIncludingAcquisitionUsd": 0,
+            "totalActualIncludingAcquisitionUsd": null
+          }
+        }
+      ]
+    }
+  },
+  "comparisons": {
+    "B_vs_C": [
+      {
+        "repeat": 1,
+        "k": 6,
+        "selectedB": 6,
+        "selectedC": 6,
+        "topKPrecisionDifference": null,
+        "interpretation": "Human labels required; small K is explicitly reported, not a significance claim"
+      },
+      {
+        "repeat": 2,
+        "k": 6,
+        "selectedB": 6,
+        "selectedC": 6,
+        "topKPrecisionDifference": null,
+        "interpretation": "Human labels required; small K is explicitly reported, not a significance claim"
+      },
+      {
+        "repeat": 3,
+        "k": 6,
+        "selectedB": 6,
+        "selectedC": 6,
+        "topKPrecisionDifference": null,
+        "interpretation": "Human labels required; small K is explicitly reported, not a significance claim"
+      }
+    ],
+    "B_vs_A": [
+      {
+        "repeat": 1,
+        "researchedA": 120,
+        "researchedB": 6,
+        "retainedUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "deliveredUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "estimatedMarginalSavingsPercent": null,
+        "estimatedTotalSavingsPercent": null,
+        "interpretation": "Estimated and reported ledger amounts only; not measured invoice savings"
+      },
+      {
+        "repeat": 2,
+        "researchedA": 120,
+        "researchedB": 6,
+        "retainedUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "deliveredUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "estimatedMarginalSavingsPercent": null,
+        "estimatedTotalSavingsPercent": null,
+        "interpretation": "Estimated and reported ledger amounts only; not measured invoice savings"
+      },
+      {
+        "repeat": 3,
+        "researchedA": 120,
+        "researchedB": 6,
+        "retainedUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "deliveredUsefulCoverageB": {
+          "numerator": 0,
+          "denominator": 0,
+          "value": null,
+          "interval95": null,
+          "sampleWarning": "no_labeled_examples"
+        },
+        "estimatedMarginalSavingsPercent": null,
+        "estimatedTotalSavingsPercent": null,
+        "interpretation": "Estimated and reported ledger amounts only; not measured invoice savings"
+      }
+    ],
+    "costSavingsPercent": null,
+    "reason": "No real reported comparable nonzero baseline costs have been verified"
+  },
+  "completedAt": "2026-10-27T15:14:51.121Z"
+}

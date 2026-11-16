@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "sourceExperiment": "run-174b7291-7691-4262-afa0-6a7d558e9e84",
+  "taskId": "pilot-03",
+  "origin": "model_assisted",
+  "reviewer": "Codex",
+  "humanReviewed": false,
+  "rawAutomaticOutcomes": {"needs_review": 3},
+  "technicalCompletions": {"numerator": 3, "denominator": 3},
+  "requiredFactCoverage": {"numerator": 6, "denominator": 6},
+  "trialsWithAllRequiredFacts": {"numerator": 3, "denominator": 3},
+  "structureCitationBudgetReplayPassed": {"numerator": 3, "denominator": 3},
+  "elapsedMs": [25858, 24004, 22940],
+  "meanElapsedMs": 24267.333333333332,
+  "costs": {
+    "openRouterReportedUsd": 0.003897852,
+    "deepseekEstimatedUsd": 0.01336488,
+    "knownPlusEstimatedSubtotalUsd": 0.017262732,
+    "unknownAttempts": 0,
+    "isInvoiceTotal": false
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "requiredFacts": "2/2 supported",
+      "answerSpan": "2.0.4 章节标注状态为“Release draft（发布草稿）”，准备日期为 2026-10-08，记录未说明该版本已正式发布。",
+      "sourceSpan": "> Status: Release draft (prepared on 2026-10-08)",
+      "sourceStart": 306,
+      "sourceEnd": 354,
+      "note": "日期与状态均回答，额外变更保留发布草稿范围。整卡仍需独立复核，不将本记录视为人工验收。"
+    },
+    {
+      "trial": 2,
+      "requiredFacts": "2/2 supported",
+      "answerSpan": "2.0.4 节的状态行标注为 Release draft，并注明 prepared on 2026-10-08。",
+      "verdictSpan": "记录不支持。该日期是发布草稿的准备日期，不是发布日",
+      "sourceSpan": "> Status: Release draft (prepared on 2026-10-08)",
+      "sourceStart": 306,
+      "sourceEnd": 354,
+      "note": "必答事实有有效引文。正文关于缺少 tag/Maven 制品的附加表述不应外推为其他发布渠道不存在。"
+    },
+    {
+      "trial": 3,
+      "requiredFacts": "2/2 supported",
+      "answerSpans": [
+        "2.0.4 在发布记录中的状态标注为 Release draft（发布草稿），并注明 prepared on 2026-10-08。",
+        "按该状态标注，2026-10-08 是草稿准备日；发布记录中未给出该版本的发布日期。"
+      ],
+      "sourceSpan": "> Status: Release draft (prepared on 2026-10-08)",
+      "caveat": {
+        "field": "props.summary",
+        "answerSpan": "2.0.4 也不是已发布版本",
+        "issue": "原文足以证明此记录标为草稿，不能仅凭该记录推断所有渠道都未正式发布。该摘要缺少来源范围限定。",
+        "suggestedText": "该记录未确认 2.0.4 已正式发布"
+      },
+      "overall": "needs_review_scope_overclaim"
+    }
+  ],
+  "interpretation": "同一道已暴露开发题的三次重复支持必答事实覆盖稳定，不证明其他任务通过或生产准确率。精确文本评分保留 needs_review。",
+  "automaticPromotion": false
+}

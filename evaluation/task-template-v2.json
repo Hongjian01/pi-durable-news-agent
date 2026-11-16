@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "agentradar-task-design-v2",
+  "recordStatus": "template_not_runnable",
+  "id": "design-T01-001",
+  "origin": "human_authored",
+  "split": "dev",
+  "taskFamily": "breaking-api-migration",
+  "partitionGroupIds": [],
+  "referenceTime": null,
+  "userGoal": "筛选与关注 SDK 相关的破坏性变化，给出有来源的中文迁移提示。",
+  "preferences": { "topicWeights": {}, "sourceWeights": {}, "k": 6 },
+  "environment": {
+    "candidateSampleIds": [],
+    "historicalSampleIds": [],
+    "initialBusinessDatabaseHash": null,
+    "initialAgentDatabaseHash": null,
+    "snapshotManifestHash": null,
+    "searchIndexHash": null,
+    "unknownPagePolicy": "return_unavailable_no_network",
+    "clockMode": "frozen"
+  },
+  "execution": {
+    "entrypoint": "production_workflow",
+    "arm": "B",
+    "maxResearchItems": 6,
+    "maxResearchRequestsPerItem": 12,
+    "maxJevRequests": null,
+    "maxMainAgentRequests": null,
+    "deadlineSeconds": null,
+    "experimentUsdHardCap": null,
+    "repeatCount": 3
+  },
+  "graderOnly": {
+    "visibility": "must_be_removed_from_agent_environment",
+    "requiredFacts": [],
+    "expectedRelations": [],
+    "expectedTerminalStates": [],
+    "forbiddenClaims": [],
+    "forbiddenActions": ["duplicate_publication", "stale_epoch_write", "unbudgeted_request"],
+    "referenceOutput": null,
+    "referenceValidated": false,
+    "humanAnnotationStatus": "pending"
+  },
+  "activationRequirements": [
+    "real_snapshots_and_provenance_bound",
+    "partition_groups_and_split_validated",
+    "human_gold_and_review_completed",
+    "reference_output_passes_graders",
+    "all_limits_and_terminal_states_explicit",
+    "protocol_and_inputs_frozen",
+    "grader_only_data_isolated"
+  ]
+}

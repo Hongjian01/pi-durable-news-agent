@@ -7,6 +7,7 @@ import { api, attempt, ui } from "../client/store";
 import { clean } from "../client/text";
 import HfsPill from "./HfsPill.vue";
 import LoadingRows from "./LoadingRows.vue";
+import EvidencePanel from "./EvidencePanel.vue";
 
 const props = defineProps<{ id: number }>();
 const detail = ref<CardDetail>();
@@ -27,21 +28,22 @@ function openTool(id: number) {
       </header>
       <template v-if="detail">
         <HfsPill :hfs="detail.card.hfs" />
+        <EvidencePanel :value="detail.card.props" />
         <dl v-if="detail.item" class="facts-grid">
-          <dt>Source</dt>
+          <dt>来源</dt>
           <dd>{{ clean(detail.item.sourceName ?? "") }}</dd>
-          <dt>Relevance</dt>
+          <dt>相关度</dt>
           <dd>{{ Math.round((detail.item.relevance ?? 0) * 100) }}</dd>
-          <dt>Worth attention</dt>
+          <dt>关注价值</dt>
           <dd>{{ Math.round((detail.item.worth ?? 0) * 100) }}</dd>
-          <dt v-if="detail.item.matchedTopic">Topic</dt>
+          <dt v-if="detail.item.matchedTopic">主题</dt>
           <dd v-if="detail.item.matchedTopic">{{ detail.item.matchedTopic }}</dd>
-          <dt>Component</dt>
+          <dt>卡片类型</dt>
           <dd>{{ detail.card.component }}</dd>
         </dl>
         <p v-if="detail.item?.excerpt" class="muted">{{ clean(detail.item.excerpt) }}</p>
         <template v-if="(detail.card.sources?.length ?? 0) > 1">
-          <h3>Story sources</h3>
+          <h3>事件来源</h3>
           <div v-for="source in detail.card.sources" :key="source.itemId" class="finding">
             <a :href="source.url" target="_blank" rel="noopener">{{ clean(source.title) }}</a>
             <p class="muted">
@@ -51,7 +53,7 @@ function openTool(id: number) {
             <p v-if="source.excerpt">{{ clean(source.excerpt) }}</p>
           </div>
         </template>
-        <h3 v-if="detail.findings.length">Research findings</h3>
+        <h3 v-if="detail.findings.length">研究分析</h3>
         <div v-for="f in detail.findings" :key="f.id" class="finding">
           <p>{{ clean(f.summary) }}</p>
           <ul class="icon-list">
@@ -59,7 +61,9 @@ function openTool(id: number) {
               <span
                 class="claim-score"
                 :class="{ ok: c.supported >= 0.7, bad: c.supported < 0.4 }"
-                >{{ Math.round(c.supported * 100) }}</span
+                >{{
+                  typeof c.supported === "number" ? Math.round(c.supported * 100) : "未评估"
+                }}</span
               >{{ clean(c.claim) }}
             </li>
           </ul>

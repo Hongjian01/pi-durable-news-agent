@@ -11,6 +11,7 @@ import {
   type WireMessage,
 } from "@dna/sdk";
 import { agentState } from "../agent-state.ts";
+import { cancelCurrentSweep } from "../news/lifecycle.ts";
 import { DEEP_THINKING, MAX_DEEP_RESEARCHERS, setDeepResearch } from "../news/deep-research.ts";
 import { toolParams } from "../news/tool-params.ts";
 import { ApiFault, invalid, notFound, optInt } from "../errors.ts";
@@ -209,7 +210,12 @@ export function agentRoutes({
         .json(result);
     },
     "agent.abort": async (_req, res) => {
+      const sweepId = await cancelCurrentSweep(app);
       await app.main.abort(ctx, { background: false });
+      if (sweepId !== undefined) {
+        app.store.lifecycle.finishCancel(sweepId);
+        app.bus.publish({ type: "sweep", sweep: app.store.sweeps.get(sweepId)! });
+      }
       app.log.warn("agent.aborted", {});
       res.json({ ok: true });
     },

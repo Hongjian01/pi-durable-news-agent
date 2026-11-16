@@ -7,6 +7,8 @@ import {
   configure,
   type AgentChange,
   type ToolExecutionApi,
+  type Tx,
+  type ConversationId,
 } from "@earendil-works/pi-durable";
 
 export interface SubagentSpec {
@@ -57,7 +59,11 @@ export async function spawnSubagents(
   api: ToolExecutionApi,
   ctx: Context,
   specs: readonly SubagentSpec[],
-  options: { requestPrefix: string; concurrency?: number },
+  options: {
+    requestPrefix: string;
+    concurrency?: number;
+    initialize?: (tx: Tx, id: ConversationId, index: number) => Promise<void>;
+  },
 ): Promise<SubagentResult[]> {
   const ids = await api.commit(async (tx) => {
     const existing = (
@@ -73,6 +79,7 @@ export async function spawnSubagents(
         ownership: { kind: "task", taskId: api.taskId },
       });
       if (specs[i].agent) await configure(tx, child.id, specs[i].agent!);
+      await options.initialize?.(tx, child.id, i);
       out.push(child.id as number);
     }
     return out;

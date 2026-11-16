@@ -13,6 +13,42 @@ export interface RouteSpec {
 }
 
 export const ROUTES = {
+  "evaluations.list": {
+    method: "GET",
+    path: "/v1/evaluations",
+    scope: "read",
+    summary: "List persisted evaluations",
+  },
+  "evaluations.start": {
+    method: "POST",
+    path: "/v1/evaluations",
+    scope: "settings",
+    summary: "Start an isolated fixture evaluation",
+  },
+  "evaluations.get": {
+    method: "GET",
+    path: "/v1/evaluations/:id",
+    scope: "read",
+    summary: "Read evaluation progress and report",
+  },
+  "evaluations.cancel": {
+    method: "POST",
+    path: "/v1/evaluations/:id/cancel",
+    scope: "settings",
+    summary: "Cancel evaluation workers",
+  },
+  "evaluations.resume": {
+    method: "POST",
+    path: "/v1/evaluations/:id/resume",
+    scope: "settings",
+    summary: "Resume interrupted evaluation",
+  },
+  "evaluations.trial": {
+    method: "GET",
+    path: "/v1/evaluations/:id/trial",
+    scope: "read",
+    summary: "Read isolated trial evidence",
+  },
   healthz: {
     method: "GET",
     path: "/healthz",
@@ -54,6 +90,48 @@ export const ROUTES = {
     path: "/v1/sweeps/:id",
     scope: "read",
     summary: "One sweep with its audit and tool calls",
+  },
+  "sweeps.cancel": {
+    method: "POST",
+    path: "/v1/sweeps/:id/cancel",
+    scope: "chat",
+    summary: "Cancel the explicitly selected sweep and fence its outstanding writes",
+  },
+  "sweeps.start": {
+    method: "POST",
+    path: "/v1/sweeps",
+    scope: "chat",
+    summary: "Manually start a scan with a stable client requestId",
+  },
+  "bookmarks.get": {
+    method: "GET",
+    path: "/v1/bookmarks",
+    scope: "read",
+    summary: "Saved card ids",
+  },
+  "cards.bookmark": {
+    method: "POST",
+    path: "/v1/cards/:id/bookmark",
+    scope: "feedback",
+    summary: "Save or unsave a card",
+  },
+  "sweeps.inspection": {
+    method: "GET",
+    path: "/v1/sweeps/:id/inspection",
+    scope: "read",
+    summary: "Persistent judgments, attempts, cost coverage and recovery state",
+  },
+  "preset.preview": {
+    method: "GET",
+    path: "/v1/presets/agentradar",
+    scope: "settings",
+    summary: "Preview defaults against current preferences",
+  },
+  "preset.apply": {
+    method: "POST",
+    path: "/v1/presets/agentradar",
+    scope: "settings",
+    summary: "Apply only explicitly selected preset entries",
   },
   feed: {
     method: "GET",

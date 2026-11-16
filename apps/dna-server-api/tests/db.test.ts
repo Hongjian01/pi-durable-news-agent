@@ -74,7 +74,7 @@ test("a second live owner is refused by the PID lock", async () => {
   }
 });
 
-test("a source added to config later reaches an existing database once, and a removed one stays removed", async () => {
+test("P04: config changes never silently add sources or restore removed preferences on restart", async () => {
   const { openStore } = await import("../src/db/store.ts");
   const dir = temp();
   const config = join(dir, "config");
@@ -104,7 +104,7 @@ test("a source added to config later reaches an existing database once, and a re
     store = openStore(join(dir, "data"), config);
     assert.deepEqual(
       store.sources.list().map((s) => s.name),
-      ["S1", "S2"],
+      ["S1"],
     );
     assert.ok(store.sources.list().every((s) => s.origin === "config"));
     store.close();

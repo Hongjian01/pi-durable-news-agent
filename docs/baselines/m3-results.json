@@ -1,0 +1,280 @@
+{
+  "milestone": "M3",
+  "sourceRevision": "working-copy",
+  "completedAt": "2026-10-27T14:15:00.6698328Z",
+  "platform": "WSL Ubuntu / Linux",
+  "node": "v24.21.0",
+  "lockSha256": "2d61a1e8410b1fba5704ad7a5d65b1be1a365e1499d1567e44f016f351939a37",
+  "paidApi": false,
+  "existingRuntimeDirectoriesModified": false,
+  "acceptance": {
+    "P04": "passed offline",
+    "P03": "passed offline",
+    "P02": "passed offline"
+  },
+  "results": [
+    {
+      "name": "dnajev",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/jev"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 399,
+      "tests": 19,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dnadurable-agent",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/durable-agent"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2918,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dnasdk",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/sdk"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 321,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-server-cron",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-cron"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2762,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-cli",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-cli"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6728,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-client-tui",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-client-tui"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 457,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "hub",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-client-browser/hub/tests/*.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 119,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "faux-recovery",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-server-api/tests/sweep-faux.test.ts",
+        "apps/dna-server-api/tests/recovery.test.ts",
+        "apps/dna-server-api/tests/auth.test.ts",
+        "apps/dna-server-api/tests/workflow.test.ts",
+        "apps/dna-server-api/tests/stream.test.ts",
+        "apps/dna-server-api/tests/executions.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 14080,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "code": 0,
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "name": "types"
+    },
+    {
+      "code": 0,
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "-w",
+        "dna-client-browser"
+      ],
+      "name": "browser-build"
+    },
+    {
+      "code": 0,
+      "name": "dna-server-api",
+      "skipped": 1,
+      "pass": 163,
+      "tests": 164,
+      "fail": 0,
+      "durationMs": 108171.443153
+    },
+    {
+      "code": 0,
+      "name": "preset-source-compatibility",
+      "skipped": 0,
+      "pass": 10,
+      "tests": 10,
+      "fail": 0
+    },
+    {
+      "code": 0,
+      "checks": 79,
+      "name": "browser-ui"
+    },
+    {
+      "code": 0,
+      "checks": 24,
+      "name": "product-ui"
+    },
+    {
+      "errors": 0,
+      "warnings": 9,
+      "code": 0,
+      "name": "lint"
+    },
+    {
+      "name": "format",
+      "code": 0
+    }
+  ],
+  "sourceIntegrity": {
+    "files": 142,
+    "sha256Parity": true,
+    "manifest": "docs/baselines/m3-source-sha256.txt"
+  },
+  "logs": {
+    "local": "test-results/m3-final",
+    "linux": "/var/tmp/agentradar-m3-20261027/test-results/m3-final",
+    "note": "The initial compatibility report contains an old English UI-label failure; final browser-ui.log supersedes it. The final preset/source regression follows the complete API run.",
+    "compatibility": "test-results/m3-compatibility"
+  },
+  "demonstrations": {
+    "passed": [
+      "real SIGKILL after source snapshot commit",
+      "snapshot exists before restart",
+      "same submission, context and epoch after browser reconnect",
+      "recovery publishes four unique cards",
+      "reconnected stream reloads published feed from the database",
+      "new product profile has eight sources and four topics",
+      "published claim exposes exact source quote",
+      "bookmark survives reload",
+      "saved tab reloads original card detail",
+      "preset preview exposes twelve selectable entries",
+      "existing preset entries are not selected for overwrite",
+      "persistent Jev operations visible in execution detail",
+      "queued matches persisted state after reload",
+      "running matches persisted state after reload",
+      "retry next wake is visible",
+      "finalizing matches persisted state after reload",
+      "partial matches persisted state after reload",
+      "partial exposes business gaps",
+      "unknown and known zero remain distinct in UI",
+      "queued matches persisted state after reload",
+      "cancelled matches persisted state after reload",
+      "cancel control changes server lifecycle",
+      "compact layout has no page overflow",
+      "no page errors: "
+    ],
+    "recovery": {
+      "sweepId": 1,
+      "submissionId": 8,
+      "contextId": 1,
+      "epoch": 0,
+      "cards": 4
+    },
+    "linux": "/var/tmp/agentradar-m3-20261027/test-results/m3-product/run-BMuJv0",
+    "videos": [
+      "recovery-demo.webm",
+      "evidence-demo.webm"
+    ],
+    "presentationFixtures": "queued/retry/finalizing/partial/unknown-cost are explicit isolated DB states",
+    "local": "test-results/m3-verified",
+    "checks": 24
+  },
+  "remaining": "M4 labeled evaluation, real-provider A/B/C and release evidence"
+}

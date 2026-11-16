@@ -7,6 +7,8 @@ import type { CachedDoc } from "../../db/repos/sources.ts";
 import type { Store } from "../../db/store.ts";
 import { extractArticle, htmlLinks, markdownLinks, type PageLink } from "../extract.ts";
 import type { Http } from "../http.ts";
+import { execution } from "../../db/execution.ts";
+import { pinnedSnapshot } from "../snapshots.ts";
 import {
   describeReport,
   EngineHealth,
@@ -204,6 +206,8 @@ export class SearchService {
       }
     }
     const { hits, report } = await webSearch(this.web, query, options.hours, limit);
+    if (!report.answered.length && (report.failed.length || report.cooling.length))
+      throw new Error(`All search engines unavailable: ${JSON.stringify(report.failed)}`);
     return { hits, via: "web", engines: describeReport(report), credits: 0 };
   }
 
@@ -218,7 +222,7 @@ export class SearchService {
     options: { limit?: number; hours?: number } = {},
   ): Promise<SearchResult> {
     const limit = options.limit ?? 10;
-    if (this.hyper && !this.health.cooling("firecrawl"))
+    if (!execution.getStore() && this.hyper && !this.health.cooling("firecrawl"))
       try {
         return await this.firecrawlSearch(this.hyper, query, call, limit, options.hours);
       } catch {
@@ -251,7 +255,18 @@ export class SearchService {
     via: "firecrawl" | "http";
     credits: number;
   }> {
-    if (this.hyper && !this.health.cooling("firecrawl"))
+    if (execution.getStore()) {
+      const page = await this.scrape(url, call);
+      const markdown = page.doc.contentMd ?? "";
+      return {
+        title: page.doc.title,
+        markdown,
+        links: markdownLinks(markdown, url),
+        via: page.via === "firecrawl" ? "firecrawl" : "http",
+        credits: page.credits,
+      };
+    }
+    if (!execution.getStore() && this.hyper && !this.health.cooling("firecrawl"))
       try {
         const page = await this.firecrawlScrape(
           this.hyper,
@@ -288,6 +303,25 @@ export class SearchService {
     call: CallRef = {},
   ): Promise<{ doc: CachedDoc; via: "cache" | "firecrawl" | "http"; credits: number }> {
     const cached = this.deps.store.sources.cached(url);
+    const pinned = pinnedSnapshot(this.deps.store.db, url);
+    if (pinned)
+      return {
+        doc:
+          cached ??
+          this.deps.store.sources.cache(
+            {
+              url,
+              title: pinned.title,
+              contentMd: pinned.body,
+              fetchVia: "http",
+              truncated: !!pinned.truncated,
+              ttlMinutes: 1440,
+            },
+            new Date(pinned.fetched_at),
+          ),
+        via: "cache",
+        credits: 0,
+      };
     if (
       cached &&
       (cached.contentMd?.length ?? 0) > 200 &&
@@ -295,7 +329,7 @@ export class SearchService {
       this.deps.store.sources.isFresh(cached)
     )
       return { doc: cached, via: "cache", credits: 0 };
-    const release = this.reserve(call, SCRAPE_CREDITS);
+    const release = execution.getStore() ? undefined : this.reserve(call, SCRAPE_CREDITS);
     if (release) {
       try {
         const { doc, credits } = await this.firecrawlScrape(this.firecrawl!, url, call, cached);
@@ -315,6 +349,7 @@ export class SearchService {
       title: article.title ?? cached?.title,
       excerpt: article.excerpt ?? cached?.excerpt,
       contentMd: article.text,
+      truncated: article.truncated,
       imageUrl: article.imageUrl,
       publishedAt: article.publishedAt,
       author: article.byline,
@@ -332,8 +367,16 @@ export class SearchService {
     url: string,
     call: CallRef = {},
   ): Promise<{ doc: CachedDoc; markdown: string; via: "firecrawl" | "http"; credits: number }> {
+    if (execution.getStore()) {
+      const page = await this.scrape(url, call);
+      return {
+        ...page,
+        markdown: page.doc.contentMd ?? "",
+        via: page.via === "firecrawl" ? "firecrawl" : "http",
+      };
+    }
     const cached = this.deps.store.sources.cached(url);
-    if (this.hyper && !this.health.cooling("firecrawl"))
+    if (!execution.getStore() && this.hyper && !this.health.cooling("firecrawl"))
       try {
         const page = await this.firecrawlScrape(this.hyper, url, call, cached);
         this.deps.log?.info("firecrawl.hyper_fetch", { url, credits: page.credits, ...call });
@@ -350,6 +393,7 @@ export class SearchService {
       title: article.title ?? cached?.title,
       excerpt: article.excerpt ?? cached?.excerpt,
       contentMd: article.text.slice(0, 40_000),
+      truncated: article.truncated || article.text.length > 40000,
       imageUrl: article.imageUrl,
       publishedAt: article.publishedAt,
       author: article.byline,
@@ -445,6 +489,7 @@ export class SearchService {
         title: page.title ?? cached?.title,
         excerpt: page.description ?? cached?.excerpt,
         contentMd: page.markdown.slice(0, 40_000),
+        truncated: page.markdown.length > 40000,
         imageUrl: page.imageUrl,
         publishedAt: page.publishedAt,
         fetchVia: this.mode === "fixture" ? "fixture" : "firecrawl",

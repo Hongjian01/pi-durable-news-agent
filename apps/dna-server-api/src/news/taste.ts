@@ -3,6 +3,7 @@ import type { Card, HfsCategory, Keyword, SourceLead } from "@dna/sdk";
 import type { Store } from "../db/store.ts";
 import { leadsFromUpvote } from "./leads.ts";
 import { sourceFor } from "./rank.ts";
+import { evaluation } from "./context.ts";
 
 export const MORE = 0.1;
 export const LESS = -0.15;
@@ -68,10 +69,10 @@ export interface TasteExample {
   labels: HfsCategory[];
 }
 
-export function tasteExamples(store: Store, limit = 6): TasteExample[] {
+export function tasteExamples(store: Store, limit = 6, sweepId?: number): TasteExample[] {
   const seen = new Set<number>();
   const out: TasteExample[] = [];
-  for (const f of store.taste.recentFeedback(40)) {
+  for (const f of evaluation(store, sweepId)?.value.feedback ?? store.taste.recentFeedback(40)) {
     if (seen.has(f.cardId) || !f.title) continue;
     seen.add(f.cardId);
     out.push({ title: f.title, reader: f.signal ?? "labeled", labels: f.labels });
@@ -91,8 +92,10 @@ export function planQueries(
 ): Keyword[] {
   const random = options.random ?? Math.random;
   const skip = new Set((options.exclude ?? []).map((t) => t.toLowerCase()));
-  const bag = store.taste
-    .keywords("topic", true)
+  const bag = (
+    evaluation(store)?.value.keywords.filter((k) => k.kind === "topic" && k.enabled) ??
+    store.taste.keywords("topic", true)
+  )
     .filter((k) => !skip.has(k.term.toLowerCase()))
     .map((k) => ({ k, key: Math.pow(random(), 1 / Math.max(k.weight, 0.01)) }))
     .sort((a, b) => b.key - a.key)
@@ -121,7 +124,11 @@ export function topicChoices(keywords: Keyword[]): Record<string, string> {
   return out;
 }
 
-export function sectionKeywords(store: Store): Record<HfsCategory, string[]> {
-  const terms = (kind: HfsCategory) => store.taste.keywords(kind, true).map((k) => k.term);
+export function sectionKeywords(store: Store, sweepId?: number): Record<HfsCategory, string[]> {
+  const terms = (kind: HfsCategory) =>
+    (
+      evaluation(store, sweepId)?.value.keywords.filter((k) => k.kind === kind && k.enabled) ??
+      store.taste.keywords(kind, true)
+    ).map((k) => k.term);
   return { hype: terms("hype"), facts: terms("facts"), signal: terms("signal") };
 }

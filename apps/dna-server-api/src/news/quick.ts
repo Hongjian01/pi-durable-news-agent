@@ -3,6 +3,8 @@
 import type { ModelCatalog } from "@dna/durable-agent";
 import type { Logger } from "@dna/sdk/node";
 import type { Store } from "../db/store.ts";
+import { evaluation } from "./context.ts";
+import { estimatedModelCost } from "./budgets.ts";
 
 export const QUICK_THINKING = ["off", "minimal", "low", "medium", "high"] as const;
 export type QuickThinking = (typeof QUICK_THINKING)[number];
@@ -21,7 +23,14 @@ export class Quick {
   constructor(private readonly deps: { catalog: ModelCatalog; store: Store; log: Logger }) {}
 
   setting(): QuickSetting {
-    return { ...DEFAULT_QUICK, ...this.deps.store.settings.get("quick", DEFAULT_QUICK) };
+    const defaults = {
+      ...DEFAULT_QUICK,
+      model:
+        this.deps.catalog.provider === "deepseek"
+          ? this.deps.catalog.defaultModel.modelId
+          : DEFAULT_QUICK.model,
+    };
+    return { ...defaults, ...this.deps.store.settings.get("quick", defaults) };
   }
 
   set(patch: Partial<QuickSetting>): QuickSetting {
@@ -36,8 +45,9 @@ export class Quick {
     label: string,
     system: string,
     user: string,
-  ): Promise<{ text: string; costUsd: number }> {
-    const { model: id, thinkingLevel } = this.setting();
+  ): Promise<{ text: string; costUsd: number | null }> {
+    const { model: id, thinkingLevel } =
+      evaluation(this.deps.store)?.value.models.quick ?? this.setting();
     const { catalog, log } = this.deps;
     const ref = catalog.ref(id);
     const model = catalog.models.getModel(ref.provider, ref.modelId);
@@ -58,7 +68,7 @@ export class Quick {
       .map((c) => (c.type === "text" ? c.text : ""))
       .join("")
       .trim();
-    const costUsd = reply.usage?.cost?.total ?? 0;
+    const costUsd = catalog.provider === "faux" ? 0 : estimatedModelCost(model, reply.usage);
     log.info("quick.call", {
       label,
       model: id,

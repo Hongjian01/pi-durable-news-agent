@@ -9,6 +9,15 @@ const toSweep = (r: any): Sweep => ({
   status: r.status,
   reason: str(r.reason),
   submissionId: num(r.submission_id),
+  contextId: num(r.context_id),
+  executionEpoch: num(r.execution_epoch),
+  lastProgressAt: str(r.last_progress_at),
+  waitReason: str(r.wait_reason),
+  nextWakeAt: str(r.next_wake_at),
+  deadlineAt: str(r.deadline_at),
+  cancelRequestedAt: str(r.cancel_requested_at),
+  failureCode: str(r.failure_code),
+  retryOfSweepId: num(r.retry_of_sweep_id),
   runEntryId: num(r.run_entry_id),
   taskId: num(r.task_id),
   searchMode: str(r.search_mode),
@@ -97,7 +106,7 @@ export class SweepsRepo {
   }): Sweep {
     const r = this.db
       .prepare(
-        "INSERT INTO sweeps (request_id, trigger, status, reason, search_mode, created_at) VALUES (:request_id, :trigger, :status, :reason, :search_mode, :now)",
+        "INSERT INTO sweeps (request_id, trigger, status, reason, search_mode, created_at,last_progress_at,deadline_at) VALUES (:request_id, :trigger, :status, :reason, :search_mode, :now,:now,:deadline)",
       )
       .run(
         bind({
@@ -107,6 +116,7 @@ export class SweepsRepo {
           reason: input.reason,
           search_mode: input.searchMode,
           now: nowIso(),
+          deadline: new Date(Date.now() + 24 * 3600000).toISOString(),
         }),
       );
     return this.get(Number(r.lastInsertRowid))!;
@@ -135,7 +145,9 @@ export class SweepsRepo {
   active(): Sweep[] {
     return (
       this.db
-        .prepare("SELECT * FROM sweeps WHERE status IN ('queued', 'running') ORDER BY id DESC")
+        .prepare(
+          "SELECT * FROM sweeps WHERE status IN ('queued', 'running','finalizing','cancelling') ORDER BY id DESC",
+        )
         .all() as any[]
     ).map(toSweep);
   }
@@ -167,6 +179,12 @@ export class SweepsRepo {
   }
 
   phase(id: number, phase: string, status: SweepPhase["status"], note?: string): Sweep {
+    if (status === "done")
+      this.db
+        .prepare(
+          "UPDATE sweeps SET last_progress_at=?,wait_reason=NULL,next_wake_at=NULL WHERE id=?",
+        )
+        .run(nowIso(), id);
     const sweep = this.get(id)!;
     const phases = [...sweep.phases];
     const now = Date.now();

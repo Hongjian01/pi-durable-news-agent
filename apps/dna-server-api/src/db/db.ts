@@ -3,6 +3,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { assertExecution, execution } from "./execution.ts";
 
 export type Db = DatabaseSync;
 
@@ -18,14 +19,51 @@ export function openDb(path: string): Db {
   db.prepare = (sql: string) => {
     const statement = prepare(sql);
     statement.setAllowUnknownNamedParameters(true);
+    // Guard every scoped mutation, including nested repos and writes after await.
+    // Diagnostics and external response logs may still record late responses.
+    const stripped = sql.replace(/\/\*[\s\S]*?\*\/|--[^\n]*/g, " ");
+    const target = stripped.match(
+      /^\s*(?:INSERT(?:\s+OR\s+\w+)?\s+INTO|UPDATE(?:\s+OR\s+\w+)?|DELETE\s+FROM|REPLACE\s+INTO)\s+["`[]?(\w+)/i,
+    )?.[1];
+    const diagnostic =
+      !!target &&
+      new Set([
+        "events",
+        "jev_calls",
+        "external_attempts",
+        "budget_reservations",
+        "agent_conversations",
+        "agent_runs",
+        "generations",
+        "tool_calls",
+        "tasks",
+        "firecrawl_calls",
+      ]).has(target.toLowerCase());
+    if (/\b(INSERT|UPDATE|DELETE|REPLACE|CREATE|ALTER|DROP)\b/i.test(stripped) && !diagnostic) {
+      for (const name of ["run", "get", "all"] as const) {
+        const method = statement[name].bind(statement) as (...args: any[]) => any;
+        (statement as any)[name] = (...args: any[]) => {
+          if (!execution.getStore()) return method(...args);
+          return tx(db, () => {
+            assertExecution(db);
+            return method(...args);
+          });
+        };
+      }
+    }
     return statement;
   };
   return db;
 }
 
 export function tx<T>(db: Db, fn: () => T): T {
+  if (db.isTransaction) {
+    assertExecution(db);
+    return fn();
+  }
   db.exec("BEGIN IMMEDIATE");
   try {
+    assertExecution(db);
     const result = fn();
     db.exec("COMMIT");
     return result;

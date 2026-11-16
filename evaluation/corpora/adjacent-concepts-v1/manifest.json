@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "origin": "model_authored_synthetic",
+  "humanReviewed": 0,
+  "documents": 12,
+  "tasks": 12,
+  "usage": "exposed_diagnostic_not_holdout",
+  "fingerprint": "4ac05c2f1c1ef4adf49522d383fc87b322748bc4ac66b44d6def3b8495847752"
+}

@@ -6,6 +6,7 @@ import {
   section,
   type AgentChange,
   type Extension,
+  type Harness,
 } from "@earendil-works/pi-durable";
 import { allowOnly, loadPrompt, observability } from "@dna/durable-agent";
 import type { Deps } from "../deps.ts";
@@ -13,6 +14,11 @@ import { componentCatalog } from "../news/components.ts";
 import { createDeepResearchTask, deepResearchSetting } from "../news/deep-research.ts";
 import { createImageTask } from "../news/image-task.ts";
 import { createSweepTask } from "../news/sweep-task.ts";
+import { scopedTool } from "../news/execution.ts";
+import { judgmentWaitTask } from "../news/judgment-wait.ts";
+import { ResearchBinding } from "../news/research-binding.ts";
+import { evaluation } from "../news/context.ts";
+import { modelBudget } from "../news/model-budget.ts";
 import { askTaste } from "./tools/ask-taste.ts";
 import { completeSweep } from "./tools/complete-sweep.ts";
 import { deepDiveResearch } from "./tools/deep-dive-research.ts";
@@ -87,9 +93,15 @@ export interface Agents {
   tools: Record<string, readonly { name: string; description: string; parameters: unknown }[]>;
 }
 
-export function createAgents(deps: Deps): Agents {
+export function createAgents(
+  deps: Deps,
+  session: () => Pick<Harness, "commit"> | undefined = () => undefined,
+): Agents {
   const agentsDir = join(deps.config.promptsDir, "agents");
   const sweepTask = createSweepTask(deps);
+  const waitTask = judgmentWaitTask(deps);
+  const waits = defineExtension({ name: "judgment-waits", tasks: [waitTask] });
+  const budgets = defineExtension({ name: "outbound-budgets", hooks: modelBudget(deps, session) });
   const imageTask = createImageTask(deps);
   const deepResearchTask = createDeepResearchTask(deps);
   const observe = observability({
@@ -130,22 +142,29 @@ export function createAgents(deps: Deps): Agents {
   ];
   const newsResearcher = defineExtension({
     name: "news-researcher",
-    tools: researcherTools,
-    sections: [section("news-researcher", () => researcherPrompt, { tag: false })],
+    tools: researcherTools.map((tool) => scopedTool(deps, tool, waitTask)),
+    sections: [
+      section(
+        "news-researcher",
+        async (input, ctx) =>
+          (await input.read.snapshot(ResearchBinding, input.conversationId, ctx))?.system ||
+          researcherPrompt,
+        { tag: false },
+      ),
+    ],
     hooks: [allowOnly("news-researcher", RESEARCHER_TOOLS)],
   });
   const researcher = (): AgentChange => ({
-    model:
-      deps.catalog.provider === "faux"
-        ? deps.catalog.defaultModel
-        : deps.catalog.ref(deps.config.researchModel),
+    model: deps.catalog.ref(
+      evaluation(deps.store)?.value.models.researchModel ?? deps.config.researchModel,
+    ),
     thinkingLevel: "low",
-    extensions: [newsResearcher, observe],
+    extensions: [newsResearcher, observe, waits, budgets],
   });
   const deepResearchTools = [deepSearch(deps), openPage(deps), shared.readItem];
   const deepResearch = defineExtension({
     name: "deep-research",
-    tools: deepResearchTools,
+    tools: deepResearchTools.map((tool) => scopedTool(deps, tool, waitTask)),
     sections: [section("deep-research", () => deepResearchPrompt, { tag: false })],
     hooks: [allowOnly("deep-research", DEEP_RESEARCH_TOOLS)],
   });
@@ -157,7 +176,7 @@ export function createAgents(deps: Deps): Agents {
           ? deps.catalog.defaultModel
           : deps.catalog.ref(setting.model),
       thinkingLevel: setting.thinkingLevel,
-      extensions: [deepResearch, observe],
+      extensions: [deepResearch, observe, waits, budgets],
     };
   };
   const deskTools = [
@@ -185,7 +204,7 @@ export function createAgents(deps: Deps): Agents {
   ];
   const newsDesk = defineExtension({
     name: "news-desk",
-    tools: deskTools,
+    tools: deskTools.map((tool) => scopedTool(deps, tool, waitTask)),
     sections: [section("news-desk", () => deskPrompt, { tag: false })],
     hooks: [allowOnly("news-desk", DESK_TOOLS)],
     tasks: [sweepTask, imageTask, deepResearchTask],
@@ -195,8 +214,8 @@ export function createAgents(deps: Deps): Agents {
     newsResearcher,
     deepResearch,
     observe,
-    all: [newsDesk, newsResearcher, deepResearch, observe],
-    defaults: [newsDesk, observe],
+    all: [newsDesk, newsResearcher, deepResearch, observe, waits, budgets],
+    defaults: [newsDesk, observe, waits, budgets],
     researcher,
     deepResearcher,
     tools: {

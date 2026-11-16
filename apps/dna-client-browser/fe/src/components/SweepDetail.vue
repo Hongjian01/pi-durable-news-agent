@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // A sweep: phase timeline, counts, costs, the audit with missing steps highlighted, and its tool calls.
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { CircleCheck, CircleX } from "@lucide/vue";
 import { ms, usd, type Sweep, type ToolCallRow } from "@dna/sdk";
 import { go } from "../client/route";
@@ -8,10 +8,20 @@ import { api, attempt } from "../client/store";
 import { clean } from "../client/text";
 import CopyJson from "./CopyJson.vue";
 import LoadingRows from "./LoadingRows.vue";
+import InspectionPanel from "./InspectionPanel.vue";
+import { statusName, phaseName, localTime, activeSweep } from "../client/product";
+const refreshTimer = setInterval(() => {
+  if (sweep.value && activeSweep(sweep.value)) void load();
+}, 3000);
+onBeforeUnmount(() => clearInterval(refreshTimer));
 
 const props = defineProps<{ id: number }>();
 const sweep = ref<Sweep & { toolCalls: ToolCallRow[] }>();
 const load = async () => (sweep.value = (await attempt(() => api.sweep(props.id))) as never);
+const cancel = async () => {
+  await attempt(() => api.cancelSweep(props.id));
+  await load();
+};
 onMounted(load);
 watch(() => props.id, load);
 const span = computed(() => {
@@ -25,29 +35,43 @@ const span = computed(() => {
 <template>
   <div v-if="sweep" class="sweep-detail" data-cap="sweeps.read" :data-sweep="sweep.id">
     <div class="node-head">
-      <strong>Sweep {{ sweep.id }}</strong
-      ><span class="status" :class="sweep.status">{{ sweep.status }}</span
+      <strong>扫描 {{ sweep.id }}</strong
+      ><span class="status" :class="sweep.status">{{ statusName(sweep.status) }}</span
       ><span>{{ sweep.trigger }}</span> <span class="grow" /><CopyJson
         :value="sweep"
         label="sweep"
       />
     </div>
+    <p v-if="sweep.waitReason">
+      等待原因：{{ sweep.waitReason }} · 下次尝试 {{ localTime(sweep.nextWakeAt) }}
+    </p>
+    <p class="muted">
+      最近真实进展 {{ localTime(sweep.lastProgressAt) }} · 硬截止
+      {{ localTime(sweep.deadlineAt) }} · 执行代次 {{ sweep.executionEpoch ?? 0 }}
+    </p>
+    <button
+      v-if="activeSweep(sweep) && sweep.status !== 'cancelling'"
+      class="button secondary"
+      @click="cancel"
+    >
+      取消扫描
+    </button>
     <dl class="facts-grid">
-      <dt>Gathered</dt>
+      <dt>发现条目</dt>
       <dd>{{ sweep.gathered }}</dd>
-      <dt>jev kept</dt>
+      <dt>Jev 保留</dt>
       <dd>{{ sweep.kept }}</dd>
-      <dt>Duplicates</dt>
+      <dt>重复事件</dt>
       <dd>{{ sweep.duplicates }}</dd>
-      <dt>Candidates</dt>
+      <dt>候选条目</dt>
       <dd>{{ sweep.candidates }}</dd>
-      <dt>Presented</dt>
+      <dt>已发布</dt>
       <dd>{{ sweep.presented }}</dd>
-      <dt>Model cost</dt>
+      <dt>历史模型估算</dt>
       <dd>{{ usd(sweep.cost?.modelUsd) }}</dd>
-      <dt>jev cost</dt>
+      <dt>历史 Jev 估算</dt>
       <dd>{{ usd(sweep.cost?.jevUsd) }} for {{ sweep.cost?.jevCalls ?? 0 }} calls</dd>
-      <dt>Images</dt>
+      <dt>图片</dt>
       <dd>{{ usd(sweep.cost?.imageUsd) }}</dd>
       <dt>Firecrawl</dt>
       <dd>{{ sweep.firecrawlCreditsUsed }} credits, {{ sweep.searchMode }} mode</dd>
@@ -56,10 +80,10 @@ const span = computed(() => {
     <p v-if="sweep.reason || sweep.error" class="bad">
       {{ clean(sweep.reason ?? sweep.error ?? "") }}
     </p>
-    <h4>Phases</h4>
+    <h4>真实执行阶段</h4>
     <div class="timeline-bars">
       <div v-for="p in sweep.phases" :key="p.phase" class="phase-bar" :class="p.status">
-        <span class="phase-name">{{ p.phase }}</span>
+        <span class="phase-name">{{ phaseName(p.phase) }}</span>
         <span class="bar"
           ><i
             :style="{
@@ -72,7 +96,7 @@ const span = computed(() => {
       </div>
     </div>
     <template v-if="sweep.audit">
-      <h4>Audit</h4>
+      <h4>业务完成检查</h4>
       <div class="audit">
         <span
           v-for="step in sweep.audit.expected"
@@ -87,7 +111,8 @@ const span = computed(() => {
         </span>
       </div>
     </template>
-    <h4>Tool calls</h4>
+    <InspectionPanel :id="sweep.id" />
+    <h4>工具调用</h4>
     <button
       v-for="t in sweep.toolCalls"
       :key="t.id"

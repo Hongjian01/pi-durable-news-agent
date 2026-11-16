@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "backend": "fixture",
+  "repeats": 1,
+  "components": true,
+  "compare": false,
+  "security": true,
+  "reliability": true,
+  "corpus": "evaluation/corpora/public-doc-updates-v1",
+  "labels": "evaluation/annotations/v3"
+}

@@ -13,12 +13,13 @@ const config = loadConfig([], {
   ...process.env,
   DNA_PROVIDER: "faux",
   DNA_SEARCH_MODE: "fixture",
+  DNA_IMAGES: "1",
   DNA_DATA_DIR: dir,
 });
 const app = await openApp(config);
 
 if (mode === "start") {
-  await startNewsSweep(app, app.main, app.ctx, { trigger: "test", requestId: "crash:1" });
+  await startNewsSweep(app, app.main, app.ctx, { trigger: "test", requestId: "crash:1", cards: 4 });
   await new Promise(() => {});
 }
 const sweep = await waitForSweep(app, 1, 60_000);

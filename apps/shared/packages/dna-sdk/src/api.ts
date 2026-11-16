@@ -174,9 +174,37 @@ export interface TasteState {
   }[];
 }
 
+export interface EvaluationRecord {
+  id: string;
+  requestId: string;
+  createdAt: string;
+  settings: Record<string, unknown>;
+  progress: { status: string; completed?: number; total?: number; error?: string };
+  summary?: {
+    counts: Record<string, number>;
+    results: {
+      taskId: string;
+      trial: number;
+      arm: string;
+      variant: string;
+      outcome: string;
+      artifact: string;
+      checks?: unknown[];
+      error?: string;
+    }[];
+    components?: unknown;
+    comparisons?: unknown;
+    diagnostics?: unknown;
+    securityPairs?: unknown;
+  } | null;
+}
 export type SweepStatus =
   | "queued"
   | "running"
+  | "finalizing"
+  | "cancelling"
+  | "partial"
+  | "cancelled"
   | "completed"
   | "no_news"
   | "skipped"
@@ -184,9 +212,38 @@ export type SweepStatus =
   | "stalled";
 
 export interface SweepAudit {
+  costs?: CostCoverage[];
   expected: string[];
   done: string[];
   missing: string[];
+}
+
+export interface CostCoverage {
+  kind: string;
+  requests: number;
+  unknown_cost_attempts: number;
+  unknown_execution_attempts: number;
+  reported_usd: number;
+  estimated_usd: number;
+  cost_coverage: number;
+}
+export interface PresetPreview {
+  version: string;
+  revision: string;
+  entries: {
+    id: string;
+    kind: "source" | "topic";
+    proposed: Record<string, unknown>;
+    current?: Record<string, unknown>;
+  }[];
+}
+export interface SweepInspection {
+  costs: CostCoverage[];
+  submission?: string;
+  items: Record<string, unknown>[];
+  sources: Record<string, unknown>[];
+  judgments: Record<string, unknown>[];
+  next?: number;
 }
 
 export interface SweepPhase {
@@ -204,6 +261,15 @@ export interface Sweep {
   status: SweepStatus;
   reason?: string;
   submissionId?: number;
+  contextId?: number;
+  executionEpoch?: number;
+  lastProgressAt?: string;
+  waitReason?: string;
+  nextWakeAt?: string;
+  deadlineAt?: string;
+  cancelRequestedAt?: string;
+  failureCode?: string;
+  retryOfSweepId?: number;
   runEntryId?: number;
   taskId?: number;
   searchMode?: string;
@@ -532,6 +598,7 @@ export interface WorkflowResult {
   sweep?: Sweep;
   reason?: string;
   submissionId?: number;
+  submissionStatus?: "pending" | "submitting" | "linked" | "failed";
 }
 
 /** How often scheduled sweeps run: every N minutes, or null when off. */

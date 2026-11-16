@@ -3,6 +3,7 @@ import { resolve, sep } from "node:path";
 import { HFS_CATEGORIES, TAB_BYS, type CardDetail, type HfsCategory } from "@dna/sdk";
 import { int, invalid, notFound, optInt } from "../errors.ts";
 import { applyFeedback } from "../news/taste.ts";
+import { supportedClaims } from "../news/evidence.ts";
 import { bodyOf, oneOf, str, type Handlers, type RouteDeps } from "./types.ts";
 
 export function labelsOf(value: unknown): HfsCategory[] | undefined {
@@ -49,7 +50,16 @@ export function feedRoutes({
       if (!card) throw notFound(`No card ${req.params.id}`);
       const item = card.itemId ? store.news.item(card.itemId) : undefined;
       const detail: CardDetail = {
-        card,
+        card: {
+          ...card,
+          props: {
+            ...card.props,
+            verifiedClaims:
+              card.sweepId && card.itemId
+                ? supportedClaims({ store }, card.sweepId, card.itemId)
+                : [],
+          },
+        },
         item: item && {
           id: item.id,
           title: item.title,

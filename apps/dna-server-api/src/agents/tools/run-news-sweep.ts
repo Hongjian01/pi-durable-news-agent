@@ -3,6 +3,8 @@ import type { Task } from "@earendil-works/pi-durable";
 import { defineAppTool, onceInCommit, toolError, toolText } from "@dna/durable-agent";
 import type { Deps } from "../../deps.ts";
 import type { SweepInput, SweepResult } from "../../news/sweep-task.ts";
+import { execution, assertExecution } from "../../db/execution.ts";
+import { bindTask } from "../../news/execution.ts";
 
 export function runNewsSweep(deps: Deps, sweepTask: Task<SweepInput, any, SweepResult, object>) {
   return defineAppTool({
@@ -21,7 +23,7 @@ export function runNewsSweep(deps: Deps, sweepTask: Task<SweepInput, any, SweepR
         return toolError(`No sweep #${args.sweep_id}.`, [
           "Use the SWEEP_ID from the sweep prompt.",
         ]);
-      if (["completed", "no_news", "skipped"].includes(sweep.status))
+      if (!["queued", "running"].includes(sweep.status))
         return toolError(`Sweep #${sweep.id} is already ${sweep.status}.`, [
           "Start no new work for it.",
         ]);
@@ -31,10 +33,18 @@ export function runNewsSweep(deps: Deps, sweepTask: Task<SweepInput, any, SweepR
         async (tx) =>
           (await tx.createTask(
             sweepTask,
-            { sweepId: sweep.id },
+            {
+              sweepId: sweep.id,
+              expectedEpoch: execution.getStore()?.epoch ?? sweep.executionEpoch ?? 0,
+            },
             { ownership: { kind: "task", taskId: api.taskId } },
           )) as number,
       );
+      assertExecution(deps.store.db);
+      bindTask(deps, taskId, {
+        sweepId: sweep.id,
+        epoch: execution.getStore()?.epoch ?? sweep.executionEpoch ?? 0,
+      });
       deps.store.sweeps.update(sweep.id, { taskId, status: "running" });
       await api.details({ sweepId: sweep.id, taskId }, ctx);
       const settled = await api.waitForTask(taskId as never, ctx);
@@ -46,7 +56,9 @@ export function runNewsSweep(deps: Deps, sweepTask: Task<SweepInput, any, SweepR
       if (outcome.status !== "completed" || !outcome.result) {
         return toolError(
           `Sweep #${sweep.id} could not finish: ${outcome.error?.message ?? outcome.status}.`,
-          ["Call complete_sweep with status no_news and a summary that names the failure."],
+          [
+            "Call complete_sweep with a summary naming the failure; the server computes failed or partial from business records.",
+          ],
         );
       }
       const r = outcome.result;

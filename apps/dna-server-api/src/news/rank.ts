@@ -5,10 +5,16 @@ import type { Source } from "@dna/sdk";
 import type { Item } from "../db/repos/news.ts";
 import type { Store } from "../db/store.ts";
 import { watching } from "./sources/discover.ts";
+import { evaluation } from "./context.ts";
+import { POLICY_V1 } from "./policy-v1.ts";
 
 /** The source an item came from, or the source that watches its site. */
-export function sourceFor(store: Store, item: Pick<Item, "sourceId" | "url">): Source | undefined {
-  const sources = store.sources.list();
+export function sourceFor(
+  store: Store,
+  item: Pick<Item, "sourceId" | "url">,
+  sweepId?: number,
+): Source | undefined {
+  const sources = evaluation(store, sweepId)?.value.sources ?? store.sources.list();
   return (
     (item.sourceId && sources.find((s) => s.id === item.sourceId)) || watching(sources, item.url)
   );
@@ -18,17 +24,27 @@ export function sourceFor(store: Store, item: Pick<Item, "sourceId" | "url">): S
 export function weightsOf(
   store: Store,
   item: Pick<Item, "sourceId" | "url" | "matchedTopic">,
+  sweepId?: number,
 ): { topic: number; source: number } {
+  const context = evaluation(store, sweepId);
   const topic = item.matchedTopic
-    ? (store.taste.findKeyword("topic", item.matchedTopic)?.weight ?? 1)
+    ? context
+      ? (context.value.keywords.find((k) => k.kind === "topic" && k.term === item.matchedTopic)
+          ?.weight ?? 1)
+      : (store.taste.findKeyword("topic", item.matchedTopic)?.weight ?? 1)
     : 1;
-  return { topic, source: sourceFor(store, item)?.weight ?? 1 };
+  return { topic, source: sourceFor(store, item, sweepId)?.weight ?? 1 };
 }
 
 /** New beats old: a day old counts in full, then less each day. */
-export function freshness(publishedAt: string | undefined, now = Date.now()): number {
-  const hours = publishedAt ? (now - Date.parse(publishedAt)) / 3_600_000 : 48;
-  return hours <= 24 ? 1 : hours <= 72 ? 0.85 : hours <= 168 ? 0.7 : 0.55;
+export function freshness(
+  publishedAt: string | undefined,
+  now = Date.now(),
+  policy = POLICY_V1.freshness,
+): number {
+  const hours = publishedAt ? (now - Date.parse(publishedAt)) / 3_600_000 : policy.undatedHours;
+  const tier = policy.hours.findIndex((limit) => hours <= limit);
+  return policy.factors[tier === -1 ? policy.factors.length - 1 : tier];
 }
 
 /** jev's importance (0 to 1) weighed by the topic and source weights and by freshness. */
@@ -36,4 +52,19 @@ export const rankScore = (
   importance: number,
   weights: { topic: number; source: number },
   publishedAt?: string,
-) => importance * weights.topic * weights.source * freshness(publishedAt);
+  now = Date.now(),
+  policy = POLICY_V1.freshness,
+) => importance * weights.topic * weights.source * freshness(publishedAt, now, policy);
+
+/** Directed evidence retrieval answers a question; publication age is not answer relevance. */
+export function candidateRankScore(
+  item: Pick<Item, "relevance" | "importance" | "publishedAt">,
+  weights: { topic: number; source: number },
+  now: number,
+  policy = POLICY_V1.freshness,
+  mode: "news" | "evidence" = "news",
+): number {
+  return mode === "evidence"
+    ? (item.relevance ?? 0)
+    : rankScore(item.importance ?? 0, weights, item.publishedAt, now, policy);
+}

@@ -165,7 +165,7 @@ test("a 403 or 429 source is skipped this sweep: no retry, no failure count, nev
       url: `${base}/r/blocked/.rss`,
     });
     const limited = store.sources.add({ kind: "rss", name: "limited", url: `${base}/limited.rss` });
-    const http = liveHttp();
+    const http = liveHttp(undefined, { allowPrivateForTests: true });
     for (let i = 0; i < 3; i++) {
       const a = await fetchSource(blocked, { http, store, since: new Date(0) });
       const b = await fetchSource(limited, { http, store, since: new Date(0) });

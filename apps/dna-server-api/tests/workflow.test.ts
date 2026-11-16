@@ -80,11 +80,11 @@ test("the schedule: presets for a 1 minute tick, PATCH a preset or off, and an o
   const off = await s.client.setSchedule(null);
   assert.equal(off.everyMinutes, null);
   assert.equal(off.nextSweepAt, undefined);
-  assert.equal(start.cardsPerSweep, 7);
+  assert.equal(start.cardsPerSweep, 4);
   assert.equal((await s.client.setCardsPerSweep(10)).cardsPerSweep, 10);
   await assert.rejects(s.client.setCardsPerSweep(0), /cardsPerSweep must be/);
   await assert.rejects(s.client.setCardsPerSweep(31), /cardsPerSweep must be/);
-  await s.client.setCardsPerSweep(7);
+  await s.client.setCardsPerSweep(4);
   const tick = await s.cron.newsSweep({ requestId: "cron:local:tick-off", scheduled: true });
   assert.equal(tick.status, 200);
   assert.equal(tick.data.status, "not_due");

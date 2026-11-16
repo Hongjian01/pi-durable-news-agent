@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "experiment": "pilot-suite-k2-1794839214",
+  "review": "pilot-suite-k2-1794839214-review",
+  "config": "evaluation/experiment.v4.json",
+  "judgeProtocol": "coverage-separated-v4",
+  "requestedResearchCandidates": 2,
+  "labelOrigin": "model_assisted",
+  "humanReviewed": false,
+  "independent": false,
+  "scope": "exposed_development_regression",
+  "counts": { "passed": 7, "failed": 0 },
+  "execution": { "completed": 6, "no_news": 1, "cards": 6, "auditGaps": 0 },
+  "actualSelectedByTask": { "pilot-01": 1, "pilot-02": 2, "pilot-03": 1, "pilot-04": 1, "pilot-05": 1, "pilot-06": 1, "pilot-empty": 0 },
+  "allSelectedResearchCompleted": true,
+  "workflowReportedPlusEstimatedUsd": 0.051773496,
+  "judgeCostIncluded": false,
+  "productionDefaultChanged": false,
+  "conclusion": "Seven frozen development tasks passed this single run. Requested candidate count is a cap; only pilot-02 selected two candidates. This does not establish overall accuracy, superiority over K=1, independent acceptance, or completion of a production data flywheel. Original artifacts and scores are retained."
+}

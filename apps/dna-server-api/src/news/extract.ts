@@ -8,6 +8,7 @@ export interface Article {
   title?: string;
   byline?: string;
   text: string;
+  truncated?: boolean;
   excerpt?: string;
   imageUrl?: string;
   publishedAt?: string;
@@ -145,11 +146,11 @@ export function extractArticle(html: string, url: string, maxChars = 12_000): Ar
   } catch {
     parsed = null;
   }
-  const text = (parsed?.textContent ?? stripHtml(html, maxChars) ?? "")
+  const fullText = (parsed?.textContent ?? stripHtml(html, 1024 * 1024) ?? "")
     .replace(/\s+\n/g, "\n")
     .replace(/[ \t]+/g, " ")
-    .trim()
-    .slice(0, maxChars);
+    .trim();
+  const text = fullText.slice(0, maxChars);
   return {
     title:
       parsed?.title ??
@@ -158,6 +159,7 @@ export function extractArticle(html: string, url: string, maxChars = 12_000): Ar
       undefined,
     byline: parsed?.byline ?? undefined,
     text,
+    truncated: fullText.length > maxChars,
     excerpt:
       parsed?.excerpt ??
       meta(document, ["og:description", "description", "twitter:description"]) ??

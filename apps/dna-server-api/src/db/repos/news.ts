@@ -12,6 +12,9 @@ import type {
 import { bind, type Db, nowIso, num, parse, str, tx } from "../db.ts";
 import { canonicalUrl, urlHash } from "./sources.ts";
 import { comparePublished, packageRelease } from "../../news/releases.ts";
+import { execution, assertExecution } from "../execution.ts";
+import { BudgetExceeded } from "../../news/budgets.ts";
+import { evaluation } from "../../news/context.ts";
 
 export type ItemStatus =
   | "candidate"
@@ -157,6 +160,17 @@ export class NewsRepo {
     const hash = urlHash(input.url);
     const existing = this.db.prepare("SELECT * FROM items WHERE url_hash = ?").get(hash);
     if (existing) return { item: toItem(existing), created: false };
+    const scope = execution.getStore();
+    if (
+      scope &&
+      (this.db.prepare("SELECT count(*) n FROM items WHERE sweep_id=?").get(scope.sweepId) as any)
+        .n >= (evaluation({ db: this.db }, scope.sweepId)?.value.budget.hard.candidates ?? 100)
+    ) {
+      this.db
+        .prepare("INSERT INTO budget_denials VALUES (?,?,?,?)")
+        .run(scope.sweepId, "candidate", "candidate_limit", nowIso());
+      throw new BudgetExceeded("candidate");
+    }
     const now = nowIso();
     const r = this.db
       .prepare(
@@ -951,36 +965,72 @@ export class NewsRepo {
     conversationId?: number;
     sweepId?: number;
   }): { card: Card; created: boolean } {
-    const existing = this.cardByToolCall(input.toolCallId);
-    if (existing) return { card: existing, created: false };
-    const r = this.db
-      .prepare(
-        `INSERT INTO cards (kind, component, item_id, story_id, image_id, props_json, hype, facts, signal, primary_category, labels_json, attention, tool_call_id, conversation_id, sweep_id, created_at)
+    return tx(this.db, () => {
+      assertExecution(this.db);
+      const sweepId = execution.getStore()?.sweepId ?? input.sweepId;
+      const associate = (card: Card, created: boolean) => {
+        if (sweepId && input.itemId) {
+          this.db
+            .prepare("INSERT OR IGNORE INTO sweep_items(sweep_id,item_id) VALUES (?,?)")
+            .run(sweepId, input.itemId);
+          this.db
+            .prepare(
+              "UPDATE sweep_items SET disposition=?,card_id=? WHERE sweep_id=? AND item_id=?",
+            )
+            .run(
+              card.sweepId === sweepId ? "published" : "duplicate",
+              card.id,
+              sweepId,
+              input.itemId,
+            );
+          this.db
+            .prepare("INSERT OR IGNORE INTO publication_events VALUES (?,?,?,?)")
+            .run(sweepId, input.itemId, card.id, created ? 1 : 0);
+          this.db
+            .prepare(
+              "UPDATE sweeps SET presented=(SELECT count(*) FROM cards WHERE sweep_id=? AND kind='news'),last_progress_at=? WHERE id=?",
+            )
+            .run(sweepId, nowIso(), sweepId);
+        }
+        if (input.itemId) this.updateItem(input.itemId, { status: "presented" });
+        return { card, created };
+      };
+      const existing =
+        this.cardByToolCall(input.toolCallId) ??
+        (input.kind === "news" && input.itemId ? this.cardForItem(input.itemId) : undefined);
+      if (existing) return associate(existing, false);
+      const r = this.db
+        .prepare(
+          `INSERT INTO cards (kind, component, item_id, story_id, image_id, props_json, hype, facts, signal, primary_category, labels_json, attention, tool_call_id, conversation_id, sweep_id, created_at)
          VALUES (:kind, :component, :item_id, :story_id, :image_id, :props, :hype, :facts, :signal, :primary, :labels, :attention, :tool_call_id, :conversation_id, :sweep_id, :now)`,
-      )
-      .run(
-        bind({
-          kind: input.kind,
-          component: input.component,
-          item_id: input.itemId,
-          story_id: input.storyId,
-          image_id: input.imageId,
-          props: input.props,
-          hype: input.hfs?.hype,
-          facts: input.hfs?.facts,
-          signal: input.hfs?.signal,
-          primary: input.hfs?.primary,
-          labels: input.hfs?.labels,
-          attention: input.attention,
-          tool_call_id: input.toolCallId,
-          conversation_id: input.conversationId,
-          sweep_id: input.sweepId,
-          now: nowIso(),
-        }),
-      );
-    if (input.itemId) this.updateItem(input.itemId, { status: "presented" });
-    if (input.itemId && packageRelease(this.item(input.itemId)!.url)) this.refreshReleases();
-    return { card: this.card(Number(r.lastInsertRowid))!, created: true };
+        )
+        .run(
+          bind({
+            kind: input.kind,
+            component: input.component,
+            item_id: input.itemId,
+            story_id: input.storyId,
+            image_id: input.imageId,
+            props: input.props,
+            hype: input.hfs?.hype,
+            facts: input.hfs?.facts,
+            signal: input.hfs?.signal,
+            primary: input.hfs?.primary,
+            labels: input.hfs?.labels,
+            attention: input.attention,
+            tool_call_id: input.toolCallId,
+            conversation_id: input.conversationId,
+            sweep_id: sweepId,
+            now: nowIso(),
+          }),
+        );
+      if (input.itemId) this.updateItem(input.itemId, { status: "presented" });
+      if (input.itemId && packageRelease(this.item(input.itemId)!.url)) this.refreshReleases();
+      const result = associate(this.card(Number(r.lastInsertRowid))!, true);
+      // Publication fault occurs after the outer COMMIT in the tool/host; no
+      // artificial crash is placed inside this transaction's atomic boundary.
+      return result;
+    });
   }
 
   setCardImage(cardId: number, imageId: number): void {

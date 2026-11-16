@@ -2,9 +2,15 @@
 import { computed } from "vue";
 import { BadgeCheck, Megaphone, ThumbsDown, ThumbsUp, Zap } from "@lucide/vue";
 import { HFS_CATEGORIES, type Card, type HfsCategory } from "@dna/sdk";
-import { api, attempt, notify } from "../client/store";
+import { api, attempt, notify, bookmarks } from "../client/store";
 
 const props = defineProps<{ card: Card }>();
+async function save() {
+  const result = await attempt(() =>
+    api.bookmark(props.card.id, !bookmarks.value.includes(props.card.id)),
+  );
+  if (result) bookmarks.value = result;
+}
 const ICONS = { hype: Megaphone, facts: BadgeCheck, signal: Zap };
 const NAMES: Record<HfsCategory, string> = { hype: "Hype", facts: "Facts", signal: "Signal" };
 /** Label buttons in the same order as the card's ranked H/F/S chips. */
@@ -17,8 +23,8 @@ async function signal(value: "more" | "less") {
   if (r)
     notify(
       value === "more"
-        ? `Showing more like this${r.changed.length ? `, ${r.changed.map((c) => c.term).join(", ")} up` : ""}${r.leads?.length ? `. The next sweep looks at ${r.leads.map((l) => l.site).join(", ")} as a source` : ""}`
-        : `Hidden from News. Showing less like this${r.changed.length ? `, ${r.changed.map((c) => c.term).join(", ")} down` : ""}`,
+        ? "已增加这类内容的推荐权重，新偏好从下一轮扫描生效。"
+        : "已从最新情报隐藏，并减少这类内容的推荐权重。",
     );
 }
 async function label(category: HfsCategory) {
@@ -34,10 +40,18 @@ async function label(category: HfsCategory) {
   <div class="feedback">
     <button
       class="fb"
+      :aria-pressed="bookmarks.includes(card.id)"
+      :aria-label="bookmarks.includes(card.id) ? '取消收藏' : '收藏卡片'"
+      @click="save"
+    >
+      {{ bookmarks.includes(card.id) ? "已收藏" : "收藏" }}
+    </button>
+    <button
+      class="fb"
       data-cap="feedback.more"
       :class="{ on: card.feedback?.signal === 'more' }"
       :aria-pressed="card.feedback?.signal === 'more'"
-      title="Show me more"
+      title="增加这类推荐"
       aria-label="Show me more"
       @click="signal('more')"
     >
@@ -48,7 +62,7 @@ async function label(category: HfsCategory) {
       data-cap="feedback.less"
       :class="{ on: card.feedback?.signal === 'less' }"
       :aria-pressed="card.feedback?.signal === 'less'"
-      title="Show me less"
+      title="减少这类推荐"
       aria-label="Show me less"
       @click="signal('less')"
     >

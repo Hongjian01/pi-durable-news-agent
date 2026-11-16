@@ -1,0 +1,322 @@
+{
+  "milestone": "M4",
+  "scope": "evaluation engineering and pending annotation corpus",
+  "engineeringPassed": true,
+  "qualityReleasePassed": false,
+  "completedAt": "2026-10-27T15:20:10.7865078Z",
+  "platform": "WSL Ubuntu / Linux",
+  "node": "v24.21.0",
+  "lockSha256": "2d61a1e8410b1fba5704ad7a5d65b1be1a365e1499d1567e44f016f351939a37",
+  "paidApi": false,
+  "existingRuntimeDirectoriesModified": false,
+  "newDependencies": 0,
+  "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+  "sourceHash": "6bd05c7c792de147d99370d4e93302934b4d3e851e801f9b669afe35313a990a",
+  "corpusFingerprint": "ca54e46c04c7c0243dff259dcb614f6c941c62ab33628428f907b06fc4ecd0b8",
+  "corpus": {
+    "origin": "synthetic_fixture",
+    "samples": 160,
+    "dev": 40,
+    "test": 120,
+    "clusters": 80,
+    "humanLabels": 0,
+    "completedReviews": 0,
+    "assignedReviews": 32,
+    "devAssignedReviews": 8,
+    "testAssignedReviews": 24
+  },
+  "acceptance": {
+    "P05": "passed offline engineering",
+    "realRepeats": 0,
+    "fixtureRepeatsPerSplit": 3,
+    "independentArmRuns": 18,
+    "releaseReady": false,
+    "releaseBlockers": [
+      "synthetic_or_engineering_corpus",
+      "human_labels_incomplete_or_disputed",
+      "independent_review_below_20_percent",
+      "independent_review_below_20_percent_in_a_split",
+      "fewer_than_three_real_repeats",
+      "quality_targets_unmet_or_insufficient_examples"
+    ]
+  },
+  "results": [
+    {
+      "name": "types",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 12541
+    },
+    {
+      "name": "dnajev",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/jev"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 378,
+      "tests": 19,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dnadurable-agent",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/durable-agent"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2800,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dnasdk",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/sdk"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 342,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-server-api",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-api"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 102592,
+      "tests": 172,
+      "pass": 171,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dna-server-cron",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-cron"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2159,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-cli",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-cli"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6710,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-client-tui",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-client-tui"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 462,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "hub",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-client-browser/hub/tests/*.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 124,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "-w",
+        "dna-client-browser"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3419
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 189
+    },
+    {
+      "name": "format",
+      "command": [
+        "npm",
+        "run",
+        "fmt:check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 966
+    },
+    {
+      "name": "faux-recovery",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-server-api/tests/sweep-faux.test.ts",
+        "apps/dna-server-api/tests/recovery.test.ts",
+        "apps/dna-server-api/tests/auth.test.ts",
+        "apps/dna-server-api/tests/workflow.test.ts",
+        "apps/dna-server-api/tests/stream.test.ts",
+        "apps/dna-server-api/tests/executions.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 14238,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-ui",
+      "command": [
+        "node",
+        "apps/dna-client-browser/tests/ui-faux.mjs"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 14379
+    }
+  ],
+  "additionalChecks": [
+    {
+      "name": "m4-final-focused",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0,
+      "overlapsFullApi": true
+    },
+    {
+      "name": "browser-ui",
+      "checks": 79,
+      "pass": 79
+    },
+    {
+      "name": "m3-product-ui",
+      "checks": 24,
+      "pass": 24
+    },
+    {
+      "name": "scripts/m4 typecheck",
+      "code": 0
+    }
+  ],
+  "lint": {
+    "warnings": 9,
+    "errors": 0
+  },
+  "sourceParity": {
+    "files": 167,
+    "mismatches": 0,
+    "manifest": "docs/baselines/m4-source-sha256.txt"
+  },
+  "reports": {
+    "dev": "docs/baselines/m4-dev-fixture.json",
+    "test": "docs/baselines/m4-test-fixture.json",
+    "protocol": "docs/baselines/m4-protocol.json",
+    "artifacts": "test-results/m4-verified",
+    "regressionLogs": "test-results/m4-regression"
+  },
+  "limitations": [
+    "Synthetic corpus is not a real labeled quality dataset",
+    "All 18 fixture arms finalized no_news; no supported publication quality claim",
+    "No human quality metrics or real cost savings",
+    "Three real repetitions remain deferred",
+    "Acquisition costs remain unknown for future captured corpus when not supplied"
+  ]
+}

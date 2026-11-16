@@ -42,7 +42,7 @@ function route(url: string, set: string): string | "png" | undefined {
   if (u.host === "durable.example.dev")
     return u.pathname.endsWith("feed.xml") ? "simon.atom.xml" : "blog.html";
   if (/\.(xml|rss)$|\/feed\/?$|\.rss/.test(u.pathname + u.search)) return "empty.rss.xml";
-  return empty ? undefined : "article.html";
+  return empty ? "listing.html" : "article.html";
 }
 
 export function fixtureHttp(set = process.env.DNA_FIXTURE_SET ?? "news", dir = FIXTURES_DIR): Http {
@@ -172,7 +172,9 @@ export function fixtureDecide(): Decide {
                     ? 0.95
                     : 0.05,
           };
-        } else if (id.startsWith("supported")) answers[id] = { type: "noul", noul: 0.8 };
+        } else if (id.startsWith("sufficient_")) answers[id] = { type: "noul", noul: 0.95 };
+        else if (id.startsWith("conflicting_")) answers[id] = { type: "noul", noul: 0.05 };
+        else if (id.startsWith("supported")) answers[id] = { type: "noul", noul: 0.8 };
         else
           answers[id] = { type: "noul", noul: relevant > 0 && count(text, HYPE) < 2 ? 0.85 : 0.15 };
         continue;

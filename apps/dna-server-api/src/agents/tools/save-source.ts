@@ -4,6 +4,8 @@ import { Type } from "@earendil-works/pi-ai";
 import { defineAppTool, toolError, toolText } from "@dna/durable-agent";
 import type { Deps } from "../../deps.ts";
 import { discoverSource, isAggregator, watching } from "../../news/sources/discover.ts";
+import { execution } from "../../db/execution.ts";
+import { evaluation } from "../../news/context.ts";
 
 export function saveSource(deps: Deps) {
   return defineAppTool({
@@ -25,6 +27,11 @@ export function saveSource(deps: Deps) {
     },
     replay: "safe",
     execute: async (args) => {
+      if (
+        execution.getStore() &&
+        evaluation(deps.store)?.value.strategy.autoDiscoverSources === false
+      )
+        return toolError("自动发现来源默认关闭，请在设置中手动添加来源。");
       const { store, config, http, log } = deps;
       const lead = args.lead_id ? store.sources.lead(args.lead_id) : undefined;
       if (args.lead_id && !lead)

@@ -2,6 +2,7 @@
 import { createHash } from "node:crypto";
 import type { Source, SourceKind, SourceLead, SourceOrigin } from "@dna/sdk";
 import { bind, bool, type Db, nowIso, num, str } from "../db.ts";
+import { pinnedSnapshot, saveSnapshot } from "../../news/snapshots.ts";
 
 export const urlHash = (url: string) =>
   createHash("sha256").update(canonicalUrl(url)).digest("hex").slice(0, 32);
@@ -40,6 +41,7 @@ export interface CachedDoc {
   publishedAt?: string;
   excerpt?: string;
   contentMd?: string;
+  truncated?: boolean;
   imageUrl?: string;
   discussionUrl?: string;
   points?: number;
@@ -91,6 +93,7 @@ const toCached = (r: any): CachedDoc => ({
   publishedAt: str(r.published_at),
   excerpt: str(r.excerpt),
   contentMd: str(r.content_md),
+  truncated: !!r.truncated,
   imageUrl: str(r.image_url),
   discussionUrl: str(r.discussion_url),
   points: num(r.points),
@@ -350,12 +353,23 @@ export class SourcesRepo {
 
   cached(url: string): CachedDoc | undefined {
     const r = this.db.prepare("SELECT * FROM source_cache WHERE url_hash = ?").get(urlHash(url));
-    return r ? toCached(r) : undefined;
+    return r ? this.snapshotView(toCached(r)) : undefined;
   }
 
   cachedById(id: number): CachedDoc | undefined {
     const r = this.db.prepare("SELECT * FROM source_cache WHERE id = ?").get(id);
-    return r ? toCached(r) : undefined;
+    return r ? this.snapshotView(toCached(r)) : undefined;
+  }
+  private snapshotView(doc: CachedDoc): CachedDoc {
+    const snapshot = pinnedSnapshot(this.db, doc.url) ?? saveSnapshot(this.db, doc);
+    return snapshot
+      ? {
+          ...doc,
+          contentMd: snapshot.body,
+          fetchedAt: snapshot.fetched_at,
+          truncated: !!snapshot.truncated,
+        }
+      : doc;
   }
 
   isFresh(doc: CachedDoc | undefined, now = new Date()): doc is CachedDoc {
@@ -369,8 +383,8 @@ export class SourcesRepo {
     const expiresAt = new Date(now.getTime() + input.ttlMinutes * 60_000).toISOString();
     this.db
       .prepare(
-        `INSERT INTO source_cache (source_id, url, url_hash, title, author, published_at, excerpt, content_md, image_url, discussion_url, points, comments, fetch_via, fetched_at, expires_at, bytes)
-         VALUES (:source_id, :url, :url_hash, :title, :author, :published_at, :excerpt, :content_md, :image_url, :discussion_url, :points, :comments, :fetch_via, :fetched_at, :expires_at, :bytes)
+        `INSERT INTO source_cache (source_id, url, url_hash, title, author, published_at, excerpt, content_md, image_url, discussion_url, points, comments, fetch_via, fetched_at, expires_at, bytes,truncated)
+         VALUES (:source_id, :url, :url_hash, :title, :author, :published_at, :excerpt, :content_md, :image_url, :discussion_url, :points, :comments, :fetch_via, :fetched_at, :expires_at, :bytes,:truncated)
          ON CONFLICT (url_hash) DO UPDATE SET
            source_id = COALESCE(source_cache.source_id, excluded.source_id),
            title = COALESCE(excluded.title, source_cache.title),
@@ -378,6 +392,7 @@ export class SourcesRepo {
            published_at = COALESCE(source_cache.published_at, excluded.published_at),
            excerpt = COALESCE(excluded.excerpt, source_cache.excerpt),
            content_md = CASE WHEN length(COALESCE(excluded.content_md, '')) >= length(COALESCE(source_cache.content_md, '')) THEN excluded.content_md ELSE source_cache.content_md END,
+           truncated = CASE WHEN length(COALESCE(excluded.content_md, '')) >= length(COALESCE(source_cache.content_md, '')) THEN excluded.truncated ELSE source_cache.truncated END,
            image_url = COALESCE(source_cache.image_url, excluded.image_url),
            discussion_url = COALESCE(excluded.discussion_url, source_cache.discussion_url),
            points = COALESCE(excluded.points, source_cache.points),
@@ -396,6 +411,7 @@ export class SourcesRepo {
           published_at: input.publishedAt,
           excerpt: input.excerpt,
           content_md: input.contentMd,
+          truncated: input.truncated ? 1 : 0,
           image_url: input.imageUrl,
           discussion_url: input.discussionUrl,
           points: input.points,
@@ -406,6 +422,7 @@ export class SourcesRepo {
           bytes: input.contentMd?.length,
         }),
       );
+    saveSnapshot(this.db, { ...input, fetchedAt });
     return this.cached(input.url)!;
   }
 

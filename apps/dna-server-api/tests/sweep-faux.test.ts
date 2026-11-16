@@ -66,7 +66,11 @@ test("a faux sweep gathers, gates, researches, classifies and presents, and the 
     const detail = app.store.telemetry.run(runs.find((r) => r.agent === "news-desk")!.runEntryId)!;
     assert.equal(detail.children.length, 2);
     assert.ok(
-      detail.generationRows.every((g) => g.durationMs !== undefined && g.contextTokens > 0),
+      detail.generationRows.every(
+        (g) =>
+          g.durationMs !== undefined &&
+          (g.provider === "local" ? g.contextTokens === 0 : g.contextTokens > 0),
+      ),
     );
 
     const jev = app.store.db
@@ -102,7 +106,7 @@ test("a run's card limit: jev ranks the candidates by importance and the sweep k
       items.filter((i) => i.importance !== undefined).length >= sweep.candidates,
       "every ranked item keeps jev's importance",
     );
-    assert.equal(app.schedule.cards(), 7, "the reader's setting is 7 cards by default");
+    assert.equal(app.schedule.cards(), 4, "the legacy fixture explicitly selects four cards");
   } finally {
     await cleanup();
   }

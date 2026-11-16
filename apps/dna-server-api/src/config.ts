@@ -14,7 +14,9 @@ export interface Config {
   rootDir: string;
   configDir: string;
   promptsDir: string;
-  provider: "openrouter" | "faux";
+  provider: "openrouter" | "deepseek" | "faux";
+  selectionMode: "news" | "evidence";
+  researchCandidates: number;
   jevBackend: "auto" | "fixture" | "mock" | "openrouter" | "typesafe";
   /** auto | web | fallback | firecrawl | fixture; SearchService warns on anything else and searches the web. */
   searchMode: string;
@@ -29,6 +31,8 @@ export interface Config {
   researchModel: string;
   imageModel: string;
   imageQuality: string;
+  imagesEnabled: boolean;
+  autoDiscoverSources: boolean;
   openaiKey?: string;
   cronSchedule: string;
   clientToken: string;
@@ -54,7 +58,12 @@ export function loadConfig(argv = process.argv.slice(2), env = process.env): Con
     strict: false,
   });
   const rootDir = repoRoot();
-  const provider = env.DNA_PROVIDER === "faux" ? "faux" : "openrouter";
+  const provider =
+    env.DNA_PROVIDER === "faux"
+      ? "faux"
+      : env.DNA_PROVIDER === "deepseek"
+        ? "deepseek"
+        : "openrouter";
   const searchMode = env.DNA_SEARCH_MODE?.trim() || "auto";
   const config: Config = {
     device: String(values.device ?? env.DNA_DEVICE_NAME ?? "local"),
@@ -67,6 +76,8 @@ export function loadConfig(argv = process.argv.slice(2), env = process.env): Con
     configDir: join(APP_DIR, "config"),
     promptsDir: join(APP_DIR, "prompt_engineering"),
     provider,
+    selectionMode: env.DNA_SELECTION_MODE === "evidence" ? "evidence" : "news",
+    researchCandidates: int(env.DNA_RESEARCH_CANDIDATES, 0),
     jevBackend:
       (env.JEV_BACKEND as Config["jevBackend"]) ?? (searchMode === "fixture" ? "fixture" : "auto"),
     searchMode,
@@ -75,16 +86,28 @@ export function loadConfig(argv = process.argv.slice(2), env = process.env): Con
     dailyCredits: int(env.DNA_FIRECRAWL_DAILY_CREDITS, 40),
     sweepQueries: int(env.DNA_SWEEP_QUERIES, 15),
     maxSavedSources: int(env.DNA_MAX_SAVED_SOURCES, 25),
-    model: env.DNA_MODEL ?? "anthropic/claude-haiku-5.5",
-    researchModel: env.DNA_RESEARCH_MODEL ?? env.DNA_MODEL ?? "anthropic/claude-haiku-5.5",
+    model:
+      env.DNA_MODEL ?? (provider === "deepseek" ? "deepseek-flash" : "anthropic/claude-haiku-5.5"),
+    researchModel:
+      env.DNA_RESEARCH_MODEL ??
+      env.DNA_MODEL ??
+      (provider === "deepseek" ? "deepseek-flash" : "anthropic/claude-haiku-5.5"),
     imageModel: env.DNA_IMAGE_MODEL ?? "gpt-image-2.5-flare",
     imageQuality: env.DNA_IMAGE_QUALITY ?? "low",
+    imagesEnabled: env.DNA_IMAGES === "1",
+    autoDiscoverSources: env.DNA_AUTO_DISCOVER_SOURCES === "1",
     openaiKey: env.OPENAI_API_KEY?.trim() || undefined,
     cronSchedule: env.DNA_CRON_SCHEDULE ?? "* * * * *",
     clientToken: env.DNA_CLIENT_TOKEN?.trim() ?? "",
     cronToken: env.DNA_CRON_TOKEN?.trim() ?? "",
     stallMinutes: int(env.DNA_STALL_MINUTES, 30),
   };
+  if (
+    !Number.isInteger(config.researchCandidates) ||
+    config.researchCandidates < 0 ||
+    config.researchCandidates > 3
+  )
+    throw Error("DNA_RESEARCH_CANDIDATES must be 0 (default) or 1..3");
   config.deviceName =
     env.DNA_DEVICE_LABEL?.trim() ||
     (() => {

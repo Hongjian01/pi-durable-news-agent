@@ -17,15 +17,57 @@ export function migrate(db: Db, dir = MIGRATIONS_DIR): string[] {
   const pending = readdirSync(dir)
     .filter((f) => /^\d{3}_[\w-]+\.sql$/.test(f) && !applied.has(f))
     .sort();
+  const available = readdirSync(dir);
+  for (const name of applied)
+    if (!available.includes(name))
+      throw new Error(
+        `Unsupported database schema ${name}; restore both databases or use compatible code`,
+      );
   for (const name of pending) {
     const sql = readFileSync(join(dir, name), "utf8");
-    tx(db, () => {
-      db.exec(sql);
-      db.prepare("INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)").run(
-        name,
-        nowIso(),
+    const rebuild = name === "003_sweep_lifecycle.sql";
+    if (
+      ["004_judgment_context.sql", "005_evidence_budget.sql"].includes(name) &&
+      db
+        .prepare(
+          "SELECT 1 FROM sweeps WHERE status IN ('queued','running','finalizing','cancelling') LIMIT 1",
+        )
+        .get()
+    )
+      throw new Error(
+        "Active sweeps must drain or be explicitly cancelled before upgrading judgment contexts; back up both databases while stopped",
       );
-    });
+    if (rebuild) {
+      if (db.prepare("SELECT 1 FROM sweeps WHERE status IN ('queued','running') LIMIT 1").get())
+        throw new Error(
+          "Active sweeps must drain or be explicitly cancelled before upgrading; back up both databases while stopped",
+        );
+      const duplicates = db
+        .prepare(
+          "SELECT item_id, group_concat(id) cards FROM cards WHERE kind='news' AND item_id IS NOT NULL GROUP BY item_id HAVING count(*)>1",
+        )
+        .all();
+      if (duplicates.length)
+        throw new Error(
+          `Duplicate news cards: ${JSON.stringify(duplicates)}. Migration stopped; review and merge separately, preserving feedback and references.`,
+        );
+      db.exec("PRAGMA foreign_keys=OFF");
+    }
+    try {
+      tx(db, () => {
+        db.exec(sql);
+        if (db.prepare("PRAGMA foreign_key_check").all().length)
+          throw new Error(`Foreign key check failed in ${name}`);
+        if ((db.prepare("PRAGMA integrity_check").get() as any).integrity_check !== "ok")
+          throw new Error(`Integrity check failed in ${name}`);
+        db.prepare("INSERT INTO schema_migrations (name, applied_at) VALUES (?, ?)").run(
+          name,
+          nowIso(),
+        );
+      });
+    } finally {
+      if (rebuild) db.exec("PRAGMA foreign_keys=ON");
+    }
   }
   return pending;
 }

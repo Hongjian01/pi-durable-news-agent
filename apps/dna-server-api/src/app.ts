@@ -18,6 +18,8 @@ import { scheduleRoutes } from "./routes/schedule.ts";
 import { workflowRoutes } from "./routes/workflows.ts";
 import type { App } from "./runtime.ts";
 import { StreamHub } from "./sse.ts";
+import { productRoutes } from "./routes/product.ts";
+import { evaluationRoutes } from "./routes/evaluations.ts";
 
 export function createHttpApp(app: App) {
   const hub = new StreamHub();
@@ -33,6 +35,8 @@ export function createHttpApp(app: App) {
     ...agentRoutes(deps),
     ...executionRoutes(deps),
     ...logRoutes(deps),
+    ...productRoutes(deps),
+    ...evaluationRoutes(deps),
   };
   const http = express();
   http.disable("x-powered-by");
@@ -40,7 +44,11 @@ export function createHttpApp(app: App) {
   http.use(requestLog(app.log));
   http.use(express.json({ limit: "256kb" }));
   http.use(identify({ client: app.config.clientToken, cron: app.config.cronToken }));
-  http.use(idempotent(app.store.db, { skip: [ROUTES["workflow.newsSweep"].path] }));
+  http.use(
+    idempotent(app.store.db, {
+      skip: [ROUTES["workflow.newsSweep"].path, ROUTES["sweeps.start"].path],
+    }),
+  );
   for (const id of Object.keys(ROUTES) as RouteId[]) {
     const route = ROUTES[id];
     const method = route.method.toLowerCase() as "get" | "post" | "patch" | "delete";

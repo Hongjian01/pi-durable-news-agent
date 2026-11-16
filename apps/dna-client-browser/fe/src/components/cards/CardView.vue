@@ -114,9 +114,20 @@ const image = computed(() =>
         /></a>
       </div>
       <div class="card-main" :class="{ linked: !!card.url }" @click="openFromBody">
+        <span class="eyebrow">研究分析</span>
         <component :is="body" :card="card" />
+        <p v-if="typeof card.props.why === 'string'" class="muted small">
+          为什么值得关注：{{ card.props.why }}
+        </p>
       </div>
       <div class="card-foot">
+        <button
+          v-if="Array.isArray(card.props.verifiedClaims) && card.props.verifiedClaims.length"
+          class="evidence-chip"
+          @click="ui.card = card.id"
+        >
+          来源核验 · {{ card.props.verifiedClaims.length }} 条声明
+        </button>
         <HfsPill :hfs="card.hfs" />
         <FeedbackBar :card="card" />
       </div>

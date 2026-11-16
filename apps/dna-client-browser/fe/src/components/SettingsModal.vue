@@ -13,6 +13,7 @@ import {
 } from "@dna/sdk";
 import JsonView from "./JsonView.vue";
 import LoadingRows from "./LoadingRows.vue";
+import PresetPanel from "./PresetPanel.vue";
 import { api, attempt, info, onFrame, refreshInfo, ui } from "../client/store";
 import { clean } from "../client/text";
 
@@ -110,7 +111,7 @@ async function removeSource(s: Source) {
   <div class="modal-backdrop" @click.self="ui.settings = false">
     <section class="modal settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
       <header>
-        <h2>Settings</h2>
+        <h2>偏好设置</h2>
         <button class="icon-button" aria-label="Close settings" @click="ui.settings = false">
           <X :size="18" />
         </button>
@@ -122,7 +123,7 @@ async function removeSource(s: Source) {
           data-cap="keywords"
           @click="tab = 'keywords'"
         >
-          Keywords
+          关注主题
         </button>
         <button
           class="tab"
@@ -130,18 +131,16 @@ async function removeSource(s: Source) {
           data-cap="sources"
           @click="tab = 'sources'"
         >
-          Sources
+          信息来源
         </button>
-        <button class="tab" :class="{ on: tab === 'search' }" @click="tab = 'search'">
-          Search
-        </button>
+        <button class="tab" :class="{ on: tab === 'search' }" @click="tab = 'search'">搜索</button>
         <button
           class="tab"
           :class="{ on: tab === 'taste' }"
           data-cap="taste.read"
           @click="tab = 'taste'"
         >
-          Taste
+          反馈
         </button>
         <button
           class="tab"
@@ -149,13 +148,11 @@ async function removeSource(s: Source) {
           data-cap="agent.tools"
           @click="openTools"
         >
-          Tools
+          工具
         </button>
       </div>
       <div v-if="tab === 'tools'" class="drawer-body tools-body">
-        <p class="muted small">
-          Every tool the agents can call, as the model sees it. Required parameters are marked.
-        </p>
+        <p class="muted small">Agent 可用的工具与权限。必填参数已标注。</p>
         <LoadingRows v-if="!tools" kind="lines" :count="6" label="Loading the tools" />
         <details v-for="t in tools ?? []" :key="t.name" class="tool-doc" :data-tool-doc="t.name">
           <summary>
@@ -164,7 +161,7 @@ async function removeSource(s: Source) {
             <span class="tool-summary">{{ clean(t.description.split(". ")[0]) }}</span>
           </summary>
           <p class="tool-desc">{{ clean(t.description) }}</p>
-          <h4>Parameters</h4>
+          <h4>参数</h4>
           <table v-if="t.params.length" class="param-table">
             <tbody>
               <tr v-for="p in t.params" :key="p.name">
@@ -183,23 +180,25 @@ async function removeSource(s: Source) {
             </tbody>
           </table>
           <p v-else class="muted">None.</p>
-          <h4>Returns</h4>
+          <h4>返回结果</h4>
           <p>{{ clean(t.returns ?? "Text.") }}</p>
           <template v-if="t.example">
-            <h4>Example call</h4>
+            <h4>调用示例</h4>
             <JsonView :value="t.example" />
           </template>
           <details class="tool-definition">
-            <summary>Definition</summary>
+            <summary>完整定义</summary>
             <JsonView :value="t.definition" />
           </details>
         </details>
       </div>
       <div v-else-if="tab === 'keywords'" class="drawer-body">
+        <PresetPanel @applied="load" />
+        <p class="muted">关注主题和来源权重的修改从下一轮扫描生效；已受理扫描继续使用原上下文。</p>
         <section v-for="kind in KINDS" :key="kind" class="kw-section" :data-section="kind">
           <h3>
             <component :is="ICONS[kind]" :size="14" />{{
-              kind === "topic" ? "Topics" : kind[0].toUpperCase() + kind.slice(1)
+              { topic: "关注主题", signal: "价值信号", facts: "证据特征", hype: "炒作特征" }[kind]
             }}
           </h3>
           <div
@@ -242,7 +241,7 @@ async function removeSource(s: Source) {
             <input
               v-model="drafts[kind]"
               :aria-label="`Add a ${kind} keyword`"
-              placeholder="Add a keyword"
+              placeholder="添加关键词"
             />
             <button class="icon-button small" type="submit" :aria-label="`Add ${kind} keyword`">
               <Plus :size="14" />
@@ -255,12 +254,12 @@ async function removeSource(s: Source) {
           <div>
             <strong>{{ s.name }}</strong>
             <small class="muted"
-              >{{ s.kind }}, {{ s.lastStatus ?? "never fetched"
+              >{{ s.kind }}, {{ s.lastStatus ?? "尚未抓取"
               }}{{ s.lastFetchedAt ? `, ${ago(s.lastFetchedAt)}` : ""
               }}{{ s.failCount ? `, ${s.failCount} failures` : "" }}</small
             >
             <small v-if="s.origin === 'agent' || s.origin === 'upvote'" class="muted"
-              >{{ s.origin === "agent" ? "Saved by the agent" : "Saved from your upvote"
+              >{{ s.origin === "agent" ? "Agent 保存" : "根据赞同反馈保存"
               }}{{ s.reason ? `: ${s.reason}` : "" }}</small
             >
           </div>
@@ -296,30 +295,30 @@ async function removeSource(s: Source) {
           <select v-model="source.kind" aria-label="Source kind">
             <option v-for="k in SOURCE_KINDS" :key="k" :value="k">{{ k }}</option>
           </select>
-          <input v-model="source.name" aria-label="Source name" placeholder="Name" />
-          <input v-model="source.url" aria-label="Source URL" placeholder="https URL" />
-          <button class="button small" type="submit"><Plus :size="14" />Add</button>
+          <input v-model="source.name" aria-label="Source name" placeholder="来源名称" />
+          <input v-model="source.url" aria-label="Source URL" placeholder="https 来源地址" />
+          <button class="button small" type="submit"><Plus :size="14" />添加</button>
         </form>
       </div>
       <div v-else-if="tab === 'search'" class="drawer-body">
         <dl class="facts-grid">
-          <dt>Search mode</dt>
+          <dt>搜索模式</dt>
           <dd>{{ info?.searchMode }}</dd>
-          <dt>Credits today</dt>
+          <dt>今日抓取额度</dt>
           <dd>{{ info?.firecrawl?.creditsToday ?? 0 }} of {{ info?.firecrawl?.dailyCap ?? 0 }}</dd>
-          <dt>Per sweep cap</dt>
+          <dt>每轮额度上限</dt>
           <dd>{{ info?.firecrawl?.sweepCap ?? 0 }}</dd>
-          <dt>Plan credits left</dt>
+          <dt>剩余额度</dt>
           <dd>{{ info?.firecrawl?.creditsLeft ?? "unknown" }}</dd>
-          <dt>Schedule</dt>
+          <dt>计划</dt>
           <dd class="mono">{{ info?.cronSchedule }}</dd>
-          <dt>Device</dt>
+          <dt>设备</dt>
           <dd>{{ info?.device }} {{ info?.mode }}, pi-durable {{ info?.piDurable }}</dd>
         </dl>
       </div>
       <div v-else class="drawer-body">
         <p v-if="!taste?.recent.length" class="muted">
-          No feedback yet. Show me more, Show me less and labels on cards teach the agent.
+          暂无反馈。赞同、减少推荐和 HFS 标签会影响下一轮偏好。
         </p>
         <div v-for="r in taste?.recent ?? []" :key="`${r.cardId}${r.at}`" class="src-row">
           <div>

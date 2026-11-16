@@ -71,7 +71,10 @@ test("site keys and aggregators", () => {
 });
 
 test("an upvote leaves a lead, the next sweep's agent saves it as a source, and the audit checks it", async () => {
-  const { app, cleanup } = await fauxApp({ DNA_FIXTURE_SET: "empty" });
+  const { app, cleanup } = await fauxApp({
+    DNA_FIXTURE_SET: "empty",
+    DNA_AUTO_DISCOVER_SOURCES: "1",
+  });
   try {
     const { store } = app;
     const card = (url: string, n: number) => {

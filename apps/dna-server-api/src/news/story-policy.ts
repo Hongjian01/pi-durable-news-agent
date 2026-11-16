@@ -25,20 +25,31 @@ const STOP = new Set(
     " ",
   ),
 );
-const words = (s: string) =>
-  new Set(
-    s
-      .toLowerCase()
-      .match(/[a-z0-9][a-z0-9.-]{2,}/g)
-      ?.filter((w) => !STOP.has(w)) ?? [],
+export function storyTerms(text: string): Set<string> {
+  const normalized = text.normalize("NFKC").toLowerCase();
+  const terms = new Set(
+    normalized.match(/[a-z0-9][a-z0-9.-]*/g)?.filter((w) => w === "not" || !STOP.has(w)) ?? [],
   );
+  for (const run of normalized.match(/\p{Script=Han}+/gu) ?? []) {
+    const chars = Array.from(run);
+    if (chars.length === 1) terms.add(chars[0]);
+    for (let i = 0; i < chars.length - 1; i++) terms.add(chars[i] + chars[i + 1]);
+  }
+  return terms;
+}
 
 /** Title overlap is a retrieval signal only. Excerpts and rare entity names recover differently worded reports. */
 export function shortlist(candidate: Item, others: Item[], limit = 12): Item[] {
-  const query = words(`${candidate.title} ${candidate.excerpt ?? ""}`);
+  const query = storyTerms(`${candidate.title} ${candidate.excerpt ?? ""}`);
   const docs = others
-    .filter((i) => i.id !== candidate.id)
-    .map((item) => ({ item, terms: words(`${item.title} ${item.excerpt ?? ""}`) }));
+    .filter(
+      (i) =>
+        i.id !== candidate.id &&
+        (!i.publishedAt ||
+          !candidate.publishedAt ||
+          Math.abs(Date.parse(i.publishedAt) - Date.parse(candidate.publishedAt)) <= 14 * 86400000),
+    )
+    .map((item) => ({ item, terms: storyTerms(`${item.title} ${item.excerpt ?? ""}`) }));
   const frequency = new Map<string, number>();
   for (const d of docs)
     for (const term of d.terms) frequency.set(term, (frequency.get(term) ?? 0) + 1);
@@ -52,7 +63,7 @@ export function shortlist(candidate: Item, others: Item[], limit = 12): Item[] {
       return { ...d, score, shared: shared.length };
     })
     .filter((d) => d.shared > 0)
-    .sort((a, b) => b.score - a.score || b.item.id - a.item.id)
-    .slice(0, limit)
+    .sort((a, b) => b.score - a.score || a.item.id - b.item.id)
+    .slice(0, Math.min(12, limit))
     .map((d) => d.item);
 }

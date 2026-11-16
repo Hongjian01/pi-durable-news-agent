@@ -52,7 +52,7 @@ export async function openDurableHarness(options: DurableHarnessOptions): Promis
         registry,
         settings: {
           extensions: options.defaults ?? options.extensions,
-          stream: { timeoutMs: 180_000, maxRetries: 2 },
+          stream: { timeoutMs: 180_000, maxRetries: 0 },
           retry: {
             enabled: true,
             maxRetries: options.maxRetries ?? 4,

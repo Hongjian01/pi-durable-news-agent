@@ -39,6 +39,31 @@ function stub(t: TestContext, impl: () => Promise<Response>) {
   return t.mock.method(globalThis, "fetch", impl);
 }
 const live = () => new JevClient({ provider: "openrouter", apiKey: "dummy-key", retryDelayMs: 0 });
+test("403 keeps provider reason and limit source while redacting credentials and never retrying", async (t) => {
+  const fetch = stub(t, async () =>
+    ok(
+      {
+        error: {
+          code: 403,
+          message: "Blocked dummy-key Bearer private-token sk-or-v1-secretkey123",
+          metadata: { limit_source: "model_allowlist", secret: "do-not-log" },
+        },
+      },
+      403,
+    ),
+  );
+  await assert.rejects(live().systemOne({ text: "x" }, questions), (error: any) => {
+    assert.equal(error.status, 403);
+    assert.equal(error.limitSource, "model_allowlist");
+    assert.match(error.message, /Blocked/);
+    assert.ok(!error.message.includes("dummy-key"));
+    assert.ok(!error.message.includes("private-token"));
+    assert.ok(!error.message.includes("secretkey123"));
+    assert.ok(!JSON.stringify(error).includes("do-not-log"));
+    return true;
+  });
+  assert.equal(fetch.mock.callCount(), 1);
+});
 
 test("mock is forced under node:test and answers every question", async () => {
   const client = new JevClient();

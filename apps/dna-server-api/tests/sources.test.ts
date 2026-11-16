@@ -51,6 +51,7 @@ test("every default source fetches through fixtures and caches its entries", asy
   const { store, cleanup } = tempStore();
   try {
     const http = fixtureHttp("news");
+    store.sources.add({ kind: "hn_front", name: "Explicit optional HN fixture" });
     const results = [];
     for (const source of store.sources.list())
       results.push(
@@ -160,14 +161,14 @@ test("a sweep's feeds keep two weeks: older entries never come in, every default
     for (const term of ["leaderboard", "SWE-bench", "ARC-AGI", "reproducible"])
       assert.ok(store.taste.findKeyword("facts", term), `${term} is a Facts keyword`);
     for (const name of [
-      "TechCrunch AI",
-      "The Verge AI",
-      "Ars Technica AI",
-      "Lobsters AI",
-      "Epoch AI",
-      "METR",
-      "SWE-bench releases",
-      "Hugging Face Papers",
+      "Simon Willison",
+      "OpenAI News",
+      "Google DeepMind",
+      "Hugging Face Blog",
+      "pi releases",
+      "Claude Code releases",
+      "Anthropic News",
+      "Codex CLI releases",
     ])
       assert.ok(
         store.sources.list().some((s) => s.name === name),

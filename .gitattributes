@@ -1,0 +1,2 @@
+# Keep Linux/WSL tools and formatting consistent with the repository's LF blobs.
+* text=auto eol=lf

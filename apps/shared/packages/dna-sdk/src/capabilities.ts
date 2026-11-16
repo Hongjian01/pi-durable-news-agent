@@ -19,7 +19,10 @@ export const CAPABILITIES = {
     routes: ["timelines.list", "timelines.get"],
   },
   "card.read": { summary: "One card with its item, findings and tool call", routes: ["cards.get"] },
-  "feedback.more": { summary: "Show me more like this card", routes: ["cards.feedback"] },
+  "feedback.more": {
+    summary: "Show me more like this card",
+    routes: ["cards.feedback", "bookmarks.get", "cards.bookmark"],
+  },
   "feedback.less": { summary: "Show me less like this card", routes: ["cards.feedback"] },
   "feedback.label": { summary: "Label a card hype, facts or signal", routes: ["cards.feedback"] },
   "taste.read": { summary: "Keywords and recent feedback", routes: ["taste.get"] },
@@ -32,7 +35,7 @@ export const CAPABILITIES = {
     summary: "Watch the agent and its tool calls live",
     routes: ["stream", "agent.transcript"],
   },
-  "chat.abort": { summary: "Stop the current run", routes: ["agent.abort"] },
+  "chat.abort": { summary: "Stop the current run", routes: ["agent.abort", "sweeps.cancel"] },
   "agent.model": { summary: "Pick the model", routes: ["agent.config", "info"] },
   "agent.thinking": { summary: "Pick the thinking level", routes: ["agent.config"] },
   "agent.tools": {
@@ -42,7 +45,7 @@ export const CAPABILITIES = {
   schedule: {
     summary:
       "How often sweeps run (every 1 to 60 minutes, or off) and how many cards each presents",
-    routes: ["schedule.get", "schedule.set"],
+    routes: ["schedule.get", "schedule.set", "sweeps.start"],
   },
   "agent.compaction": {
     summary: "Move the background and force compaction points",
@@ -55,11 +58,18 @@ export const CAPABILITIES = {
   },
   sources: {
     summary: "List, add, toggle and remove sources",
-    routes: ["sources.list", "sources.add", "sources.update", "sources.remove"],
+    routes: [
+      "sources.list",
+      "sources.add",
+      "sources.update",
+      "sources.remove",
+      "preset.preview",
+      "preset.apply",
+    ],
   },
   "sweeps.read": {
     summary: "Sweeps with counts, phases, costs and audit",
-    routes: ["sweeps.list", "sweeps.get"],
+    routes: ["sweeps.list", "sweeps.get", "sweeps.inspection"],
   },
   "runs.read": {
     summary: "Agent runs with generations, tool calls and subagents",

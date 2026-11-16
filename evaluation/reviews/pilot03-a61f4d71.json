@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "sourceExperiment": "run-a61f4d71-6761-41d4-962a-7ddba500a8fd",
+  "taskId": "pilot-03",
+  "origin": "model_assisted",
+  "reviewer": "Codex",
+  "humanReviewed": false,
+  "automaticOutcome": "needs_review",
+  "requiredFactsSatisfied": 2,
+  "requiredFactsTotal": 2,
+  "overall": "needs_review",
+  "facts": [
+    {
+      "factId": "pilot-03-fact-1",
+      "decision": "supported",
+      "answerSpan": "2.0.4 在发布记录中的状态标注为 Release draft（草稿）",
+      "sourceSpan": "> Status: Release draft (prepared on 2026-10-08)",
+      "snapshotId": 1,
+      "bodyHash": "2bcd46aa51806a8669b49dd460df08fc71ad8d88a9105126c522788bbde75c52",
+      "start": 306,
+      "end": 354
+    },
+    {
+      "factId": "pilot-03-fact-2",
+      "decision": "supported",
+      "answerSpan": "2026-10-08 被标注为草稿的准备日期（prepared on），而非发布日期",
+      "sourceSpan": "> Status: Release draft (prepared on 2026-10-08)",
+      "snapshotId": 1,
+      "bodyHash": "2bcd46aa51806a8669b49dd460df08fc71ad8d88a9105126c522788bbde75c52",
+      "start": 306,
+      "end": 354
+    }
+  ],
+  "caveats": [
+    {
+      "claimId": 4,
+      "text": "2.0.4 新增 OpenAI Responses API 模块",
+      "issue": "该条引用来自发布草稿，声明应保留草稿范围。卡片的 verdict 已说明未确认正式发布日期，但单独展示该 verifiedClaim 可能被理解为已经发布。",
+      "suggestedText": "2.0.4 发布草稿列出的变更包括新增 OpenAI Responses API 模块"
+    }
+  ],
+  "rationale": "结构断言全部通过；两条必答事实均有语义等价回答和有效快照引文。精确文本评分未命中不代表必答事实缺失。附加声明仍有草稿范围措辞风险，因此不将整卡自动提升为通过，不修改原始评分或参考标签。",
+  "automaticPromotion": false
+}

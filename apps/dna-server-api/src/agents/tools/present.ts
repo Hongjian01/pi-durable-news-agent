@@ -2,6 +2,7 @@
 // components, props checked against jev scores, one card per tool task so a replay returns the same card, images
 // resolved or generated in the background). present_timeline links presented cards about one story in date order.
 import { Type } from "@earendil-works/pi-ai";
+import { publicationCapacityGap } from "../../news/research-plan.ts";
 import type { Task, ToolExecutionApi } from "@earendil-works/pi-durable";
 import type { Context } from "@earendil-works/chord";
 import { defineAppTool, onceInCommit, toolError, toolText } from "@dna/durable-agent";
@@ -10,6 +11,10 @@ import type { Deps } from "../../deps.ts";
 import type { Item } from "../../db/repos/news.ts";
 import { StoryMatcher } from "../../news/stories.ts";
 import { checkComponent } from "../../news/components.ts";
+import { publicationGaps } from "../../news/finalization.ts";
+import { execution, assertExecution } from "../../db/execution.ts";
+import { supportedClaims } from "../../news/evidence.ts";
+import { faultPoint } from "../../news/faults.ts";
 import type { ImageInput } from "../../news/image-task.ts";
 
 const PROPS_HELP =
@@ -40,7 +45,8 @@ async function imageFor(
   item: Item | undefined,
   title: string,
   summary: string,
-): Promise<number> {
+): Promise<number | undefined> {
+  if (!deps.config.imagesEnabled) return undefined;
   const existing = item ? await deps.images.resolve(item) : undefined;
   if (existing) return existing;
   return deps.images.pending(item?.id, deps.images.prompt({ title, summary }));
@@ -53,7 +59,7 @@ async function startImage(
   card: Card,
   deps: Deps,
 ) {
-  if (!card.image || card.image.status !== "pending") return;
+  if (!deps.config.imagesEnabled || !card.image || card.image.status !== "pending") return;
   const prompt = deps.store.db
     .prepare("SELECT prompt FROM images WHERE id = ?")
     .get(card.image.id) as { prompt: string } | undefined;
@@ -63,7 +69,13 @@ async function startImage(
     async (tx) =>
       (await tx.createTask(
         imageTask,
-        { imageId: card.image!.id, prompt: prompt?.prompt ?? card.title },
+        {
+          imageId: card.image!.id,
+          prompt: prompt?.prompt ?? card.title,
+          scope: execution.getStore()
+            ? { sweepId: execution.getStore()!.sweepId, epoch: execution.getStore()!.epoch }
+            : undefined,
+        },
         {
           ownership: { kind: "conversation" },
           conversationId: api.conversationId,
@@ -97,6 +109,14 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
     execute: async (args, api, ctx) => {
       const prior = deps.store.news.cardByToolCall(String(api.taskId));
       if (prior) {
+        deps.store.news.addCard({
+          kind: "news",
+          component: prior.component,
+          props: prior.props,
+          itemId: prior.itemId,
+          toolCallId: String(api.taskId),
+          sweepId: execution.getStore()?.sweepId ?? prior.sweepId,
+        });
         await startImage(api, ctx, imageTask, prior, deps);
         return toolText(`Presented card ${prior.id} (${prior.component}, ${scoreLine(prior)}).`, {
           cardId: prior.id,
@@ -119,11 +139,20 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
           `Item #${item.id} is attached as ${membership.role} to story ${membership.storyId}; no additional card is needed.`,
         );
       const existing = deps.store.news.cardForItem(item.id);
-      if (existing)
+      if (existing) {
+        deps.store.news.addCard({
+          kind: "news",
+          component: existing.component,
+          props: existing.props,
+          itemId: item.id,
+          toolCallId: String(api.taskId),
+          sweepId: execution.getStore()?.sweepId ?? item.sweepId,
+        });
         return toolText(
           `Presented card ${existing.id} (${existing.component}, ${scoreLine(existing)}).`,
           { cardId: existing.id },
         );
+      }
       if (
         item.lastError?.startsWith("Story relationship uncertain") &&
         !deps.store.news.findings(item.id).length
@@ -144,6 +173,34 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
         hasDiscussion: !!item.discussionUrl,
       });
       if (problem) return toolError(`present_news failed: ${problem}`);
+      const managed = execution.getStore()?.sweepId;
+      if (managed) {
+        const capacityGap = publicationCapacityGap(deps.store, managed);
+        if (capacityGap)
+          return toolError(capacityGap, [
+            "Research every selected candidate, compare their supported findings against the user question, then publish within the card limit and finalize.",
+          ]);
+        const gaps = publicationGaps(deps.store, managed, item.id);
+        if (
+          gaps.length === 1 &&
+          gaps[0] === "evidence_missing" &&
+          !deps.store.db
+            .prepare(
+              "SELECT 1 FROM sweep_sources WHERE sweep_id=? AND source_key=? AND status='failed'",
+            )
+            .get(managed, `research_page:${item.id}`)
+        ) {
+          deps.store.lifecycle.item(managed, item.id, {
+            disposition: "insufficient_evidence",
+            reason: "No supported factual claims with a saved source body",
+          });
+          return toolText(`Skipped #${item.id}: insufficient evidence for a news card.`);
+        }
+        if (gaps.length)
+          return toolError(`present_news blocked: ${gaps.join(", ")}`, [
+            "Finish research, save supported evidence and classify HFS for this item.",
+          ]);
+      }
       // The feed orders news by publish date: an item without one gets it from its page first.
       if (!item.publishedAt && !item.dateSource) await deps.dates.resolve(item);
       const title = String(args.props.title ?? args.props.name ?? args.props.claim ?? item.title);
@@ -151,10 +208,21 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
         args.props.summary ?? args.props.dek ?? args.props.why ?? item.excerpt ?? "",
       );
       const imageId = await imageFor(deps, item, title, summary);
+      assertExecution(deps.store.db);
       const { card } = deps.store.news.addCard({
         kind: "news",
         component: args.component,
-        props: args.props,
+        props: {
+          ...args.props,
+          verifiedClaims: [],
+          ...(managed
+            ? {
+                verifiedClaims: supportedClaims(deps, managed, item.id),
+                verificationScope:
+                  "Only verifiedClaims are source-supported; other card text is analysis.",
+              }
+            : {}),
+        },
         itemId: item.id,
         imageId,
         hfs,
@@ -163,6 +231,7 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
         conversationId: api.conversationId as number,
         sweepId: item.sweepId,
       });
+      faultPoint(deps.config.provider, "publication_committed");
       await startImage(api, ctx, imageTask, card, deps);
       const sweep = item.sweepId ? deps.store.sweeps.get(item.sweepId) : undefined;
       // A count, not an increment: a replayed call after a restart must not count its card twice.

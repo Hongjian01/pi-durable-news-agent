@@ -87,7 +87,14 @@ test("missing variables throw with every name", () => {
 
 test("each repeats questions per claim with suffixed ids", () => {
   const rendered = renderCommand(loadCommand("claim-support", DIR), SAMPLE);
-  assert.deepEqual(Object.keys(rendered.questions), ["supported_0", "supported_1"]);
+  assert.deepEqual(Object.keys(rendered.questions), [
+    "sufficient_0",
+    "conflicting_0",
+    "supported_0",
+    "sufficient_1",
+    "conflicting_1",
+    "supported_1",
+  ]);
   assert.match(String((rendered.questions.supported_1 as any).instructions), /It ships a GUI/);
 });
 

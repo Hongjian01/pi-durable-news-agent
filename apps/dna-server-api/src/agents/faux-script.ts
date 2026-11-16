@@ -32,6 +32,15 @@ function titles(sweepResult: string): Map<number, { title: string; discussion: b
 }
 
 function component(hfsLine: string | undefined, discussion: boolean, title: string) {
+  if (process.env.DNA_FIXTURE_LOCALE === "zh-CN")
+    return {
+      component: "brief",
+      props: {
+        title: `开发者情报：${title}`,
+        summary: "这项更新涉及智能体开发与持久执行。以下为离线演示研究摘要，请展开核对原文证据。",
+        why: "与 Agent 工程实践相关，可用于检查工具链能力与升级影响。",
+      },
+    };
   const score = (k: string) => Number(hfsLine?.match(new RegExp(`${k} (\\d+)`))?.[1] ?? 0);
   const primary = hfsLine?.match(/primary (\w+)/)?.[1];
   if (primary === "hype" && score("hype") >= 40)
@@ -80,7 +89,7 @@ const desk: FauxRule = (turn) => {
   }
   if (!called(turn, "run_news_sweep").length) return call("run_news_sweep", { sweep_id: sweepId });
   const sweepText = resultOf(turn, "run_news_sweep")[0]?.text ?? "";
-  const candidates = ids(sweepText.split("\n").slice(1).join("\n")).slice(0, 4);
+  const candidates = ids(sweepText.split("\n").slice(1).join("\n"));
   if (!candidates.length) {
     const save = saveLeads(turn);
     if (save) return save;
@@ -95,8 +104,9 @@ const desk: FauxRule = (turn) => {
   const info = titles(sweepText);
   if (!called(turn, "research_items").length) {
     const batches = [];
-    for (let i = 0; i < candidates.length; i += 2)
-      batches.push({ item_ids: candidates.slice(i, i + 2) });
+    const chunk = Math.max(1, Math.ceil(candidates.length / 2));
+    for (let i = 0; i < candidates.length; i += chunk)
+      batches.push({ item_ids: candidates.slice(i, i + chunk) });
     return call("research_items", { sweep_id: sweepId, batches });
   }
   if (!called(turn, "jev_classify").length)
@@ -154,9 +164,40 @@ const researcher: FauxRule = (turn) => {
         name: "report_findings",
         args: {
           item_id: id,
-          summary: `Item ${id} is a concrete change an agentic engineer can act on.`,
-          claims: ["The release is available now"],
-          evidence_urls: [],
+          summary:
+            process.env.DNA_FIXTURE_LOCALE === "zh-CN"
+              ? `条目 ${id} 提供了可供 Agent 开发者检查的技术变化。`
+              : `Item ${id} is a concrete change an agentic engineer can act on.`,
+          claims: [
+            process.env.DNA_FIXTURE_LOCALE === "zh-CN"
+              ? "该版本现已发布"
+              : "The release is available now",
+          ],
+          citations: resultOf(turn, "read_item").flatMap((result) => {
+            if (!result.text.startsWith(`#${id} `)) return [];
+            const snapshot = Number(result.text.match(/snapshot: (\d+)/)?.[1]);
+            const body =
+              result.text.split("[snapshot text]\n")[1]?.split("\n[/snapshot text]")[0] ?? "";
+            const quote = (body.split("\n").find((line) => line.length > 10) ?? "").slice(0, 160);
+            return snapshot && quote
+              ? [
+                  {
+                    claim_index: 0,
+                    snapshot_id: snapshot,
+                    quote,
+                    start: body.indexOf(quote),
+                    end: body.indexOf(quote) + quote.length,
+                  },
+                ]
+              : [];
+          }),
+          evidence_urls: resultOf(turn, "read_item").flatMap((result) =>
+            result.text.startsWith(`#${id} `)
+              ? [result.text.match(/url: (https?:\/\/\S+)/)?.[1]].filter(
+                  (url): url is string => !!url,
+                )
+              : [],
+          ),
           actionability: "medium",
         },
       })),

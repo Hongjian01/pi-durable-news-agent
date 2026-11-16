@@ -1,0 +1,98 @@
+{
+  "keywords": {
+    "topic": ["durable agents", "coding agents", "MCP", "agent benchmarks"],
+    "hype": [
+      "AGI",
+      "game changer",
+      "10x",
+      "revolutionary",
+      "replaces engineers",
+      "valuation",
+      "funding round"
+    ],
+    "facts": [
+      "release notes",
+      "changelog",
+      "benchmark results",
+      "paper",
+      "documentation",
+      "open source",
+      "leaderboard",
+      "SWE-bench",
+      "Terminal-Bench",
+      "ARC-AGI",
+      "eval results",
+      "pass@1",
+      "methodology",
+      "reproducible"
+    ],
+    "signal": [
+      "breaking change",
+      "migration",
+      "new API",
+      "pricing change",
+      "deprecation",
+      "security advisory",
+      "available now",
+      "how to"
+    ]
+  },
+  "sources": [
+    {
+      "kind": "atom",
+      "name": "Simon Willison",
+      "url": "https://simonwillison.net/atom/everything/",
+      "interval_min": 15,
+      "weight": 1.2
+    },
+    {
+      "kind": "rss",
+      "name": "OpenAI News",
+      "url": "https://openai.com/news/rss.xml",
+      "interval_min": 15,
+      "weight": 1.0
+    },
+    {
+      "kind": "rss",
+      "name": "Google DeepMind",
+      "url": "https://deepmind.google/blog/rss.xml",
+      "interval_min": 15,
+      "weight": 0.9
+    },
+    {
+      "kind": "rss",
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "interval_min": 15,
+      "weight": 0.9
+    },
+    {
+      "kind": "github_releases",
+      "name": "pi releases",
+      "url": "https://github.com/earendil-works/pi/releases.atom",
+      "interval_min": 15,
+      "weight": 1.5
+    },
+    {
+      "kind": "github_releases",
+      "name": "Claude Code releases",
+      "url": "https://github.com/anthropics/claude-code/releases.atom",
+      "interval_min": 15,
+      "weight": 1.3
+    },
+    {
+      "kind": "web_page",
+      "name": "Anthropic News",
+      "url": "https://www.anthropic.com/news",
+      "interval_min": 30,
+      "weight": 1.2
+    },
+    {
+      "kind": "github_releases",
+      "name": "Codex CLI releases",
+      "url": "https://github.com/openai/codex/releases.atom",
+      "interval_min": 15,
+      "weight": 1.0
+    }
+  ]
+}

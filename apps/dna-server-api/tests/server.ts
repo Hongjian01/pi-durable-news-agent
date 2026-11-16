@@ -57,6 +57,7 @@ export async function bootServer(env: Record<string, string> = {}): Promise<Boot
           DNA_ENV_FILE: "none",
           DNA_PROVIDER: "faux",
           DNA_SEARCH_MODE: "fixture",
+          DNA_IMAGES: "1",
           DNA_FIXTURE_SET: "news",
           DNA_DATA_DIR: dir,
           DNA_LOG_DIR: join(dir, "logs"),
@@ -88,6 +89,7 @@ export async function bootServer(env: Record<string, string> = {}): Promise<Boot
   };
   try {
     await start();
+    await new DnaClient(base, tokens.client).setCardsPerSweep(4);
   } catch (error) {
     rmSync(dir, { recursive: true, force: true });
     throw error;
@@ -114,7 +116,10 @@ export async function settledSweep(client: DnaClient, id: number, ms = 30_000) {
   const end = Date.now() + ms;
   while (Date.now() < end) {
     const sweep = await client.sweep(id);
-    if (["completed", "no_news", "failed", "stalled"].includes(sweep.status)) return sweep;
+    if (
+      ["completed", "no_news", "failed", "stalled", "partial", "cancelled"].includes(sweep.status)
+    )
+      return sweep;
     await new Promise((r) => setTimeout(r, 150));
   }
   throw new Error(`Sweep ${id} did not settle`);

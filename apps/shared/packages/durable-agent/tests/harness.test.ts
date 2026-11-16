@@ -60,3 +60,16 @@ test("a second process cannot open the same agent database", async () => {
     t.cleanup();
   }
 });
+
+test("a second harness in the same process cannot steal the live database lock", async () => {
+  const t = tempDir();
+  try {
+    const first = await fauxHarness(t.dir, [(turn) => say(`hello ${turn.lastUser}`)], []);
+    await assert.rejects(fauxHarness(t.dir, [], []), /already owned by process/);
+    const result = await ask(first.root, first.ctx, "still alive");
+    assert.equal(result.status, "done");
+    await first.close();
+  } finally {
+    t.cleanup();
+  }
+});

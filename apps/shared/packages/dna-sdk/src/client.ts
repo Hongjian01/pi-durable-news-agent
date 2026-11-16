@@ -2,6 +2,8 @@
 // browser hub injects it, so the browser never holds one.
 import type {
   AgentConfigBody,
+  PresetPreview,
+  SweepInspection,
   AgentState,
   Card,
   CardDetail,
@@ -58,6 +60,43 @@ export const newRequestId = (): string =>
   globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export class DnaClient {
+  evaluations() {
+    return this.raw<import("./api.ts").EvaluationRecord[]>("evaluations.list").then((r) => r.data);
+  }
+  startEvaluation(body: {
+    requestId: string;
+    repeat?: number;
+    components?: boolean;
+    compare?: boolean;
+    security?: boolean;
+    reliability?: boolean;
+    task?: string;
+  }) {
+    return this.raw<import("./api.ts").EvaluationRecord>("evaluations.start", { body }).then(
+      (r) => r.data,
+    );
+  }
+  evaluation(id: string) {
+    return this.raw<import("./api.ts").EvaluationRecord>("evaluations.get", {
+      params: { id },
+    }).then((r) => r.data);
+  }
+  cancelEvaluation(id: string) {
+    return this.raw<import("./api.ts").EvaluationRecord>("evaluations.cancel", {
+      params: { id },
+    }).then((r) => r.data);
+  }
+  resumeEvaluation(id: string) {
+    return this.raw<import("./api.ts").EvaluationRecord>("evaluations.resume", {
+      params: { id },
+    }).then((r) => r.data);
+  }
+  evaluationTrial(id: string, artifact: string) {
+    return this.raw<Record<string, unknown>>("evaluations.trial", {
+      params: { id },
+      query: { artifact },
+    }).then((r) => r.data);
+  }
   readonly baseUrl: string;
   constructor(
     baseUrl: string,
@@ -80,13 +119,14 @@ export class DnaClient {
     const timeout = AbortSignal.timeout(options.timeoutMs ?? 30_000);
     const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
     const key = options.idempotencyKey ?? (route.method === "POST" ? newRequestId() : undefined);
+    const body = options.body === undefined && route.method === "POST" ? {} : options.body;
     let response: Response;
     try {
       response = await fetch(this.baseUrl + routePath(id, options.params, options.query), {
         method: route.method,
         signal,
-        headers: this.headers(options.body !== undefined, key ? { "idempotency-key": key } : {}),
-        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        headers: this.headers(body !== undefined, key ? { "idempotency-key": key } : {}),
+        body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch (cause) {
       if (options.signal?.aborted) throw cause;
@@ -173,6 +213,27 @@ export class DnaClient {
   sweep(id: number) {
     return this.call<Sweep & { toolCalls: unknown[] }>("sweeps.get", { params: { id } });
   }
+  cancelSweep(id: number) {
+    return this.call<Sweep>("sweeps.cancel", { params: { id } });
+  }
+  startSweep(requestId: string) {
+    return this.call<WorkflowResult>("sweeps.start", { body: { requestId } });
+  }
+  bookmarks() {
+    return this.call<number[]>("bookmarks.get");
+  }
+  bookmark(id: number, saved: boolean) {
+    return this.call<number[]>("cards.bookmark", { params: { id }, body: { saved } });
+  }
+  sweepInspection(id: number, before?: number) {
+    return this.call<SweepInspection>("sweeps.inspection", { params: { id }, query: { before } });
+  }
+  preset() {
+    return this.call<PresetPreview>("preset.preview");
+  }
+  applyPreset(revision: string, selected: string[]) {
+    return this.call<PresetPreview>("preset.apply", { body: { revision, selected } });
+  }
   feed(query: { before?: number; limit?: number } = {}) {
     return this.call<Page<Card>>("feed", { query });
   }
@@ -255,6 +316,7 @@ export class DnaClient {
     scheduled?: boolean;
     /** This run's own card limit instead of the reader's setting. */
     cards?: number;
+    retryOfSweepId?: number;
   }) {
     return this.raw<WorkflowResult>("workflow.newsSweep", { body, idempotencyKey: body.requestId });
   }

@@ -3,6 +3,9 @@ import type { Deps } from "../deps.ts";
 import type { Item } from "../db/repos/news.ts";
 import { yes } from "@dna/jev";
 import { pageText } from "./page.ts";
+import { execution, FencedExecution } from "../db/execution.ts";
+import { JudgmentRetry } from "./operations.ts";
+import { evaluation } from "./context.ts";
 import {
   shortlist,
   storyAction,
@@ -19,23 +22,23 @@ export class StoryMatcher {
   constructor(private readonly deps: StoryDeps) {}
 
   private async evidence(item: Item) {
-    if (!this.pages.has(item.id)) this.pages.set(item.id, pageText(this.deps, item, 6000));
+    if (!this.pages.has(item.id)) this.pages.set(item.id, pageText(this.deps, item, 2000));
     const text = await this.pages.get(item.id);
     return {
-      title: item.title,
-      source_url: item.url,
-      source: item.sourceName ?? "unknown",
+      title: item.title.slice(0, 300),
+      source_url: item.url.slice(0, 1024),
+      source: (item.sourceName ?? "unknown").slice(0, 200),
       published_at: item.publishedAt ?? "unknown",
-      excerpt: item.excerpt ?? "",
+      excerpt: (item.excerpt ?? "").slice(0, 500),
       article_text: text ?? "",
       article_available: !!text,
       findings: this.deps.store.news
         .findings(item.id)
-        .slice(-2)
+        .slice(-1)
         .map((f) => ({
-          summary: f.summary,
-          claims: f.claimSupport,
-          evidence_urls: f.evidence,
+          summary: f.summary.slice(0, 400),
+          claims: f.claimSupport.slice(0, 3).map((c) => ({ ...c, claim: c.claim.slice(0, 180) })),
+          evidence_urls: f.evidence.slice(0, 3).map((url) => url.slice(0, 200)),
         })),
     };
   }
@@ -50,10 +53,10 @@ export class StoryMatcher {
     const members = membership
       ? store.news.storyMembers(membership.storyId).filter((i) => i.id !== candidate.id)
       : [other];
-    const relevant = shortlist(candidate, members, 10);
+    const relevant = shortlist(candidate, members, 5);
     const selected = [
       ...new Map([other, ...relevant, ...members.slice(-10)].map((i) => [i.id, i])).values(),
-    ].slice(0, 20);
+    ].slice(0, 5);
     const developments = [];
     // Bounded page fetching, with one shared promise per article.
     for (const member of selected)
@@ -64,17 +67,25 @@ export class StoryMatcher {
     const state = {
       candidate: await this.evidence(candidate),
       existing: {
-        title: other.title,
+        title: other.title.slice(0, 300),
         developments,
         history_truncated: selected.length < members.length,
       },
+      input_limits: { history_fragments: 5, fragment_characters: 2000, total_characters: 16000 },
     };
+    while (JSON.stringify(state).length > 16000 && state.existing.developments.length > 0) {
+      state.existing.developments.pop();
+      state.existing.history_truncated = true;
+    }
     const hash = createHash("sha256").update(JSON.stringify(state)).digest("hex");
-    const version = judge.commands["same-story"].version;
-    const prior = store.db
-      .prepare(`SELECT answers_json FROM story_decisions
+    const context = evaluation(store, sweepId);
+    const version = judge.command("same-story", sweepId).version;
+    const prior = context
+      ? undefined
+      : (store.db
+          .prepare(`SELECT answers_json FROM story_decisions
       WHERE item_id=? AND other_item_id=? AND version=? AND evidence_hash=?`)
-      .get(candidate.id, other.id, version, hash) as any;
+          .get(candidate.id, other.id, version, hash) as any);
     const verdict: StoryVerdict = prior
       ? JSON.parse(prior.answers_json)
       : await (async () => {
@@ -89,15 +100,17 @@ export class StoryMatcher {
     const thresholds = Object.fromEntries(
       Object.entries(STORY_THRESHOLDS).map(([key, fallback]) => [
         key,
-        judge.policy("same-story", key, fallback),
+        judge.policy("same-story", key, fallback, sweepId),
       ]),
     ) as typeof STORY_THRESHOLDS;
-    const action = storyAction(verdict, thresholds);
+    const action = state.existing.history_truncated
+      ? "uncertain"
+      : storyAction(verdict, thresholds);
     if (!prior)
       store.db
         .prepare(`INSERT INTO story_decisions
-      (item_id, other_item_id, version, evidence_hash, state_json, answers_json, action, sweep_id, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+      (item_id, other_item_id, version, evidence_hash, state_json, answers_json, action, sweep_id, created_at,context_state)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)`)
         .run(
           candidate.id,
           other.id,
@@ -108,6 +121,7 @@ export class StoryMatcher {
           action,
           sweepId ?? null,
           new Date().toISOString(),
+          context ? "versioned" : "legacy_unversioned",
         );
     return { action, verdict };
   }
@@ -134,6 +148,7 @@ export class StoryMatcher {
     const seen = new Set<string>();
     const matches: { other: Item; action: StoryAction; verdict: StoryVerdict }[] = [];
     let failed = false;
+    const errors: unknown[] = [];
     // Compare a candidate with at most one representative per story, in bounded batches.
     const candidates = options.filter((other) => {
       const key = String(store.news.membership(other.id)?.storyId ?? `item:${other.id}`);
@@ -148,6 +163,7 @@ export class StoryMatcher {
             matches.push({ other, ...(await this.compare(item, other, sweepId)) });
           } catch (error) {
             failed = true;
+            errors.push(error);
             log.warn("sweep.same_story_failed", {
               itemId: item.id,
               otherId: other.id,
@@ -156,6 +172,21 @@ export class StoryMatcher {
           }
         }),
       );
+      if (execution.getStore()) {
+        const retry = errors.find(
+          (error) => error instanceof JudgmentRetry || error instanceof FencedExecution,
+        );
+        if (retry) throw retry;
+        if (failed) {
+          store.news.failItem(item.id, "same_story_failed");
+          if (sweepId)
+            store.lifecycle.item(sweepId, item.id, {
+              disposition: "error",
+              reason: "same_story_failed",
+            });
+          return "uncertain";
+        }
+      }
     }
     const confident = matches.filter((m) =>
       ["duplicate", "evidence", "development"].includes(m.action),

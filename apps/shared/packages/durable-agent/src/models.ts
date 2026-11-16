@@ -1,7 +1,8 @@
-// The model catalog: Haiku 5.5 (default) plus 29 more models, all through OpenRouter.
+// Model catalogs for OpenRouter, official DeepSeek, and the deterministic faux provider.
 // DNA_PROVIDER=faux swaps in a free deterministic model with the same 1M window.
 import { createModels, type MutableModels } from "@earendil-works/pi-ai/models";
 import { openrouterProvider } from "@earendil-works/pi-ai/providers/openrouter";
+import { deepseekProvider } from "@earendil-works/pi-ai/providers/deepseek";
 import type { ModelRef } from "@earendil-works/pi-durable";
 
 export interface CatalogEntry {
@@ -77,7 +78,7 @@ export const CATALOG: readonly CatalogEntry[] = [
 
 export interface ModelCatalog {
   readonly models: MutableModels;
-  readonly provider: "openrouter" | "faux";
+  readonly provider: "openrouter" | "deepseek" | "faux";
   readonly defaultModel: ModelRef;
   list(): ModelInfo[];
   /** A catalog id to a pi-durable model reference; throws for ids outside the catalog. */
@@ -86,11 +87,40 @@ export interface ModelCatalog {
 }
 
 export function createModelCatalog(options: {
-  provider: "openrouter" | "faux";
+  provider: "openrouter" | "deepseek" | "faux";
   installFaux?: (models: MutableModels) => void;
   defaultModel?: string;
 }): ModelCatalog {
   const models = createModels();
+  if (options.provider === "deepseek") {
+    const provider = deepseekProvider();
+    models.setProvider(provider);
+    const entries = provider.getModels();
+    const list = () =>
+      entries.map((model) => ({
+        id: model.id,
+        name: model.name,
+        tier: "A",
+        icon: "deepseek.png",
+        provider: "deepseek",
+        contextWindow: model.contextWindow,
+        reasoning: model.reasoning,
+        cost: { input: model.cost.input, output: model.cost.output },
+      }));
+    const ref = (id: string): ModelRef => {
+      if (!entries.some((model) => model.id === id))
+        throw new Error("Unknown DeepSeek model " + id);
+      return { provider: "deepseek", modelId: id };
+    };
+    return {
+      models,
+      provider: "deepseek",
+      defaultModel: ref(options.defaultModel ?? "deepseek-flash"),
+      list,
+      ref,
+      info: (id) => list().find((model) => model.id === id),
+    };
+  }
   if (options.provider === "faux") {
     if (!options.installFaux) throw new Error("A faux catalog needs installFaux");
     options.installFaux(models);

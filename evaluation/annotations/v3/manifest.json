@@ -1,0 +1,14 @@
+{
+  "version": 3,
+  "labelOrigin": "model_assisted",
+  "tasks": 7,
+  "calibrationCases": 48,
+  "usage": "exposed_diagnostic",
+  "humanReviewed": 0,
+  "parent": "2026-11-12",
+  "files": {
+    "tasks": "b40b458095f6bd5e9c27ea13bd281fece42417e3d9af60fac60bfd3d2449962f",
+    "task-keys": "1fa726473c4c786310f26536ab6f32da8db873304a283c7b9c73bc0e6ad3dbb9",
+    "grader-cases": "ed3af7e961e33f492f6207810e9b813a42a5a6d11c08c9ec06d946c72894e0cd"
+  }
+}

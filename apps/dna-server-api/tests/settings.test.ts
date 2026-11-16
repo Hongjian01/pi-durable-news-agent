@@ -72,6 +72,7 @@ test("model and thinking changes validate against the catalog", async () => {
 });
 
 test("show me more and less move topic weights, card detail shows the feedback, bad bodies are 400", async () => {
+  await s.client.addKeyword({ kind: "topic", term: "pi-durable" });
   const started = await s.cron.newsSweep({ requestId: "settings:1" });
   await settledSweep(s.client, started.data.sweep!.id);
   await idle(s.client);

@@ -1,6 +1,6 @@
 {
   "name": "claim-support",
-  "version": 1,
+  "version": 2,
   "description": "One yes or no per claim: does the evidence support it",
   "model": "~typesafe/jev-latest",
   "each": { "over": "claims", "as": "claim" },
@@ -8,6 +8,14 @@
     "evidence": "{{evidence}}"
   },
   "questions": {
+    "sufficient": {
+      "type": "noul",
+      "instructions": "Does the supplied evidence contain enough source context to assess this claim without guessing: {{claim}}? Truncated or missing context is insufficient."
+    },
+    "conflicting": {
+      "type": "noul",
+      "instructions": "Do at least two distinct supplied sources make mutually incompatible factual statements about this claim: {{claim}}? Mere absence of support or disagreement with the claim alone is not a multi-source conflict."
+    },
     "supported": {
       "type": "noul",
       "instructions": "Does the text in `evidence` support this claim: \"{{claim}}\"?",

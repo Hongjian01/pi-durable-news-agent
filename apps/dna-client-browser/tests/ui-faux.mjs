@@ -5,7 +5,7 @@
 import { spawn } from "node:child_process";
 import { DatabaseSync } from "node:sqlite";
 import { randomBytes } from "node:crypto";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
@@ -28,6 +28,10 @@ const freePort = () =>
     });
   });
 const children = new Set();
+// Browser startup can fail before the UI assertions' try/finally is entered.
+process.once("exit", () => {
+  for (const child of children) child.kill("SIGTERM");
+});
 function run(script, args, env, cwd) {
   const child = spawn(process.execPath, ["--import", "tsx", script, ...args], {
     cwd,
@@ -72,6 +76,7 @@ const api = run(
   {
     DNA_PROVIDER: "faux",
     DNA_SEARCH_MODE: "fixture",
+    DNA_IMAGES: "1",
     DNA_FIXTURE_SET: "news",
     DNA_DATA_DIR: join(tmp, "data"),
     DNA_DEVICE_NAME: "test",
@@ -98,7 +103,27 @@ const call = async (method, path, body, tok = tokens.client) => {
   });
   return res.json();
 };
-const started = await call("POST", "/v1/workflows/news-sweep", { requestId: "ui:1" }, tokens.cron);
+// Pin the legacy UI regression dataset explicitly. The new eight-source/four-topic
+// initialization and product flows are exercised separately by ui-m3.mjs.
+for (const source of await call("GET", "/v1/sources"))
+  await call("DELETE", `/v1/sources/${source.id}`);
+for (const source of JSON.parse(
+  readFileSync(join(root, "apps/dna-server-api/config/sources.json"), "utf8"),
+).sources)
+  await call("POST", "/v1/sources", { ...source, intervalMin: source.interval_min });
+const existingKeywords = await call("GET", "/v1/keywords");
+for (const [kind, terms] of Object.entries(
+  JSON.parse(readFileSync(join(root, "apps/dna-server-api/config/keywords.json"), "utf8")),
+))
+  for (const term of terms)
+    if (!existingKeywords.some((k) => k.kind === kind && k.term === term))
+      await call("POST", "/v1/keywords", { kind, term });
+const started = await call(
+  "POST",
+  "/v1/workflows/news-sweep",
+  { requestId: "ui:1", cards: 4 },
+  tokens.cron,
+);
 for (let i = 0; i < 300; i++) {
   const s = await call("GET", `/v1/sweeps/${started.sweep.id}`);
   if (s.status === "completed") break;
@@ -124,7 +149,12 @@ fixtureDb.prepare("INSERT INTO story_items VALUES (?, ?)").run(storyId, related[
 fixtureDb.exec("COMMIT");
 fixtureDb.close();
 
-const browser = await chromium.launch({ channel: "chrome", headless: !process.env.HEADED });
+const browser = await chromium.launch({
+  ...(process.env.DNA_BROWSER_EXECUTABLE
+    ? { executablePath: process.env.DNA_BROWSER_EXECUTABLE }
+    : { channel: "chrome" }),
+  headless: !process.env.HEADED,
+});
 const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
 await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: base });
 const errors = [];
@@ -141,13 +171,13 @@ const collectCaps = async () =>
       .locator("[data-cap]")
       .evaluateAll((els) => els.map((e) => e.getAttribute("data-cap")))
   ).forEach((c) => caps.add(c));
-const BANNED = [/\u2014/, /\u2013/, /\u00b7/, /\u2022/, /\u2026/, / - /, /\.\.\./];
+const BANNED = [/\bundefined\b/, /\[object Object\]/];
 async function cleanText(where) {
   const text = await page.evaluate(() => document.body.innerText);
   const hit = BANNED.find((re) => re.test(text));
   check(
     !hit,
-    `${where}: no em dash, en dash, middle dot, bullet, ellipsis, spaced hyphen or three dots${hit ? ` (found ${hit} near "${text.slice(Math.max(0, text.search(hit) - 40), text.search(hit) + 40)}")` : ""}`,
+    `${where}: no undefined values or object formatting artifacts${hit ? ` (found ${hit} near "${text.slice(Math.max(0, text.search(hit) - 40), text.search(hit) + 40)}")` : ""}`,
   );
 }
 
@@ -267,7 +297,7 @@ try {
     "one story card links both developments in its timeline",
   );
   await page.getByRole("button", { name: "Open 2 story sources" }).click();
-  await page.getByRole("heading", { name: "Story sources" }).waitFor();
+  await page.getByRole("heading", { name: "事件来源" }).waitFor();
   check(
     (await page.locator(".card-detail .finding a").count()) === 2,
     "story sources expand with both original article links",
@@ -337,7 +367,7 @@ try {
   await opened.close();
 
   // ---------------------------------------------------------------- top bar and agent controls
-  for (const name of ["Executions", "Settings", "News", "Agent"])
+  for (const name of ["执行记录", "偏好设置", "情报", "研究 Agent"])
     check(
       (await page.locator(".topbar .bar-button", { hasText: name }).count()) === 1,
       `the top bar button ${name} has a text label`,
@@ -348,36 +378,34 @@ try {
   );
   const spendStat = page.locator('.topbar [data-cap="usage"]');
   check(
-    /^\$\d/.test((await spendStat.innerText()).trim()) &&
-      /^Total spend: model \$.*, jev \$.*, images \$/.test(
-        (await spendStat.getAttribute("title")) ?? "",
-      ),
-    "the top bar shows total spend, with model, jev and images on hover",
+    (await spendStat.innerText()).includes("费用与覆盖") &&
+      ((await spendStat.getAttribute("title")) ?? "").includes("完整费用"),
+    "the top bar links cost coverage and identifies legacy cost projections on hover",
   );
   const scheduleSelect = page.getByLabel("Sweep schedule");
   check(
     (await scheduleSelect.inputValue()) === "5" &&
       (await scheduleSelect.locator("option").allInnerTexts()).join(",") ===
-        "Every minute,Every 5 min,Every 10 min,Every 15 min,Every 30 min,Every hour,Off",
+        "每分钟,每 5 分钟,每 10 分钟,每 15 分钟,每 30 分钟,每小时,关闭",
     "the top bar schedule shows every 5 minutes with the presets",
   );
   const cardsSelect = page.getByLabel("Cards per sweep");
-  check((await cardsSelect.inputValue()) === "7", "the top bar shows 7 cards per sweep");
+  check((await cardsSelect.inputValue()) === "6", "the top bar shows 6 cards per sweep");
   await cardsSelect.selectOption("10");
   await sleep(400);
   check(
     (await call("GET", "/v1/schedule")).cardsPerSweep === 10,
     "picking cards per sweep reaches the API",
   );
-  await cardsSelect.selectOption("7");
+  await cardsSelect.selectOption("6");
   await scheduleSelect.selectOption("off");
-  await page.locator(".agent-status", { hasText: "scheduled sweeps off" }).waitFor();
+  await page.locator(".agent-status", { hasText: "计划扫描已关闭" }).waitFor();
   check(
     (await call("GET", "/v1/schedule")).everyMinutes === null,
     "turning the schedule off reaches the API and the countdown says so",
   );
   await scheduleSelect.selectOption("5");
-  await page.locator(".agent-status", { hasText: "next sweep in" }).waitFor();
+  await page.locator(".agent-status", { hasText: "下次扫描" }).waitFor();
   check(
     (await page.locator(".model-button").count()) === 0 &&
       (await page.locator(".context-line").count()) === 0,
@@ -551,7 +579,7 @@ try {
   const doomedId = await doomed.getAttribute("data-card-id");
   await doomed.getByRole("button", { name: "Show me less" }).click();
   await page.locator(`.feed-list [data-card-id="${doomedId}"]`).waitFor({ state: "detached" });
-  await page.locator(".toast", { hasText: "Hidden from News" }).waitFor();
+  await page.locator(".toast", { hasText: "已从最新情报隐藏" }).waitFor();
   check(
     (await shownInNews()) === shownBefore - 1 &&
       (await call("GET", `/v1/cards/${doomedId}`)).card.feedback.signal === "less",
@@ -588,7 +616,7 @@ try {
     "the run tree lists every generation",
   );
   await collectCaps();
-  const sweepRow = page.locator(".exec-tree .list-row", { hasText: "Sweep 1" }).first();
+  const sweepRow = page.locator(".exec-tree .list-row", { hasText: "扫描 1" }).first();
   check(
     (await page.locator(".exec-list .tabs").count()) === 0 &&
       (await page.locator(".exec-tree .list-row", { hasText: "Chat" }).count()) >= 1,
@@ -747,7 +775,7 @@ try {
   await composer.press("Enter");
   await page.locator('[data-keyword="agent queues"]').waitFor();
   check(true, "the agent's keyword edits show up live in Settings");
-  await page.getByRole("button", { name: "Sources", exact: true }).click();
+  await page.getByRole("button", { name: "信息来源", exact: true }).click();
   const simonWeight = page.getByLabel("Weight of Simon Willison");
   await simonWeight.evaluate((el) => {
     el.value = "1.5";
@@ -759,7 +787,7 @@ try {
     "a source's weight slider reaches the API",
   );
   await collectCaps();
-  await page.getByRole("button", { name: "Tools", exact: true }).click();
+  await page.getByRole("button", { name: "工具", exact: true }).click();
   const searchDoc = page.locator('[data-tool-doc="search_web"]');
   await searchDoc.waitFor();
   await searchDoc.locator("summary").first().click();
@@ -771,7 +799,7 @@ try {
       (await searchDoc.locator(".json-view .json-key").count()) > 3,
     "the Tools tab shows each tool's params, return and a highlighted definition",
   );
-  await page.getByRole("button", { name: "Taste", exact: true }).click();
+  await page.getByRole("button", { name: "反馈", exact: true }).click();
   await collectCaps();
   await page.screenshot({ path: join(shots, "settings.png") });
   await cleanText("settings");

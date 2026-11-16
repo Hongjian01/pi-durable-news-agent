@@ -1,0 +1,44 @@
+{
+  "samples": 180,
+  "dev": 40,
+  "test": 140,
+  "clusters": 85,
+  "byLanguage": {
+    "zh": 22,
+    "en": 154,
+    "mixed": 4
+  },
+  "byRepository": {
+    "agentscope-ai/agentscope-java": 51,
+    "pydantic/pydantic-ai": 122,
+    "numpy/numpy": 7
+  },
+  "bySplitLanguage": {
+    "dev": {
+      "zh": 7,
+      "en": 32,
+      "mixed": 1
+    },
+    "test": {
+      "zh": 15,
+      "en": 122,
+      "mixed": 3
+    }
+  },
+  "humanLabels": 0,
+  "completedIndependentReviews": 0,
+  "assignedIndependentReviews": 36,
+  "paidApi": false,
+  "purpose": "pending-label real technical-document source pool",
+  "readyForQualityRelease": false,
+  "provisionalGroups": "Union of immutable source-update batch, normalized multilingual/version path and identical body. Human semantic story-cluster review is mandatory before freezing.",
+  "limitations": [
+    "Documentation-update sampling is not representative of news or marketing feeds",
+    "Languages and negative-case labels require human confirmation",
+    "No invented publication dates: publishedAt is the actual proven source document-update commit time",
+    "No human labels or completed privacy/licensing/semantic-cluster sign-off",
+    "Potential negative examples are numerical-library notes, not human-certified negatives",
+    "Current sources do not guarantee >=20 human positive examples for every critical metric"
+  ],
+  "fingerprint": "faf06b5572e7c9ba283e16bee3786f6d92739f5d9de52b8f42ededd51724abf4"
+}

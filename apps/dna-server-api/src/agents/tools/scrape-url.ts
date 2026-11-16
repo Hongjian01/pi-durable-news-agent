@@ -2,6 +2,8 @@ import { Type } from "@earendil-works/pi-ai";
 import { defineAppTool, toolError, toolText } from "@dna/durable-agent";
 import type { Deps } from "../../deps.ts";
 import { activeSweepId, clip, ref } from "./shared.ts";
+import { pinnedSnapshot } from "../../news/snapshots.ts";
+import { snapshotWindow } from "./snapshot-window.ts";
 
 export function scrapeUrl(deps: Deps) {
   return defineAppTool({
@@ -14,9 +16,11 @@ export function scrapeUrl(deps: Deps) {
       item_id: Type.Optional(Type.Integer()),
       url: Type.Optional(Type.String()),
       max_chars: Type.Optional(Type.Integer({ minimum: 500, maximum: 8000 })),
+      start_char: Type.Optional(Type.Integer({ minimum: 0 })),
+      find_text: Type.Optional(Type.String({ minLength: 1, maxLength: 200 })),
     }),
     replay: "safe",
-    outputLimits: { maxBytes: 20_000 },
+    outputLimits: { maxBytes: 40_000 },
     execute: async (args, api) => {
       const item = args.item_id ? deps.store.news.item(args.item_id) : undefined;
       if (args.item_id && !item) return toolError(`No item #${args.item_id}.`);
@@ -32,8 +36,9 @@ export function scrapeUrl(deps: Deps) {
             excerpt: (doc.excerpt ?? doc.contentMd).slice(0, 1000),
             imageUrl: item.imageUrl ?? doc.imageUrl,
           });
+        const snapshot = pinnedSnapshot(deps.store.db, doc.url);
         return toolText(
-          `${doc.title ?? url} (via ${via}${credits ? `, ${credits} credits` : ""})\n${clip(doc.contentMd, args.max_chars ?? 4000)}`,
+          `${doc.title ?? url} (via ${via}${credits ? `, ${credits} credits` : ""})\n${snapshot ? snapshotWindow(snapshot, args, 4000).join("\n") : clip(doc.contentMd, args.max_chars ?? 4000)}`,
         );
       } catch (error) {
         return toolError(`Could not read ${url}: ${String(error).slice(0, 200)}`, [

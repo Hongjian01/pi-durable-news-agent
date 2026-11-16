@@ -8,6 +8,7 @@ import { PROMPTS_DIR, tempStore } from "./helpers.ts";
 test("the judge scores, ranks, records every call, and records failures", async () => {
   const { store, cleanup } = tempStore();
   try {
+    store.taste.addKeyword("topic", "pi-durable");
     const judge = new Judge({ decide: fixtureDecide(), store, dir: join(PROMPTS_DIR, "jev") });
     const { item: pi } = store.news.upsertItem({
       url: "https://simonwillison.net/pi",

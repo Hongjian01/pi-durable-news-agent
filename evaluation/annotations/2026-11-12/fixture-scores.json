@@ -1,0 +1,164 @@
+[
+  {
+    "trial": "dev/repeat-1-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 32,
+    "selectedDocuments": 40,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "dev/repeat-1-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      19,
+      32
+    ]
+  },
+  {
+    "trial": "dev/repeat-1-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 6,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "dev/repeat-2-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 32,
+    "selectedDocuments": 40,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "dev/repeat-2-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      19,
+      32
+    ]
+  },
+  {
+    "trial": "dev/repeat-2-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 6,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "dev/repeat-3-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 32,
+    "selectedDocuments": 40,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "dev/repeat-3-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      19,
+      32
+    ]
+  },
+  {
+    "trial": "dev/repeat-3-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 6,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-1-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 88,
+    "selectedDocuments": 120,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-1-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      50,
+      88
+    ]
+  },
+  {
+    "trial": "test/repeat-1-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 4,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-2-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 88,
+    "selectedDocuments": 120,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-2-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      50,
+      88
+    ]
+  },
+  {
+    "trial": "test/repeat-2-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 4,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-3-A/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 88,
+    "selectedDocuments": 120,
+    "usefulGateRecallCounts": null
+  },
+  {
+    "trial": "test/repeat-3-B/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 5,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": [
+      50,
+      88
+    ]
+  },
+  {
+    "trial": "test/repeat-3-C/result.json",
+    "protocolHash": "48a13f2cdb3ccfccfedfab6ad77eceb3be4f72a06b22029c9fb19c0f37a4403b",
+    "terminalState": "no_news",
+    "selectedUsefulDocuments": 4,
+    "selectedDocuments": 6,
+    "usefulGateRecallCounts": null
+  }
+]

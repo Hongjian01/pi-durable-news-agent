@@ -20,15 +20,14 @@ import { agentState, api, attempt, connection, feed, info, now, ui } from "../cl
 const busy = computed(() => agentState.value?.busy ?? false);
 const schedule = computed(() => agentState.value?.schedule);
 const countdown = computed(() => {
-  if (schedule.value && schedule.value.everyMinutes === null) return "scheduled sweeps off";
+  if (schedule.value && schedule.value.everyMinutes === null) return "计划扫描已关闭";
   const at = agentState.value?.nextSweepAt ?? info.value?.nextSweepAt;
-  if (!at) return "no sweep scheduled";
+  if (!at) return "尚未安排扫描";
   const s = Math.max(0, Math.round((Date.parse(at) - now.value) / 1000));
-  return `next sweep in ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  return `下次扫描 ${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 });
-const every = (m: number) =>
-  m === 60 ? "Every hour" : m === 1 ? "Every minute" : `Every ${m} min`;
-const CARD_CHOICES = [3, 5, 7, 10, 15, 20, 30];
+const every = (m: number) => (m === 60 ? "每小时" : m === 1 ? "每分钟" : `每 ${m} 分钟`);
+const CARD_CHOICES = [3, 5, 6, 7, 10, 15, 20, 30];
 async function setCards(value: string) {
   const next = await attempt(() => api.setCardsPerSweep(Number(value)));
   if (next) feed.apply({ type: "schedule", schedule: next });
@@ -46,21 +45,21 @@ const spend = computed(() => agentState.value?.spend);
     <div class="brand">
       <span class="brand-mark" aria-hidden="true"><Zap :size="17" /></span>
       <div>
-        <strong>Durable News Agent</strong>
-        <span class="tagline">News Worth Your Attention</span>
+        <strong>AgentRadar</strong>
+        <span class="tagline">开发者技术情报雷达</span>
       </div>
     </div>
     <div class="agent-status" data-cap="status" :class="{ working: busy }" aria-live="polite">
       <template v-if="connection !== 'live'"
         ><WifiOff :size="16" /><span>{{
-          connection === "unauthorized" ? "Token refused" : "Reconnecting"
+          connection === "unauthorized" ? "令牌无效" : "正在重连"
         }}</span></template
       >
       <template v-else-if="busy"
-        ><LoaderCircle :size="16" class="spin" /><span>Working</span></template
+        ><LoaderCircle :size="16" class="spin" /><span>执行中</span></template
       >
       <template v-else
-        ><Clock :size="16" /><span>Waiting, {{ countdown }}</span></template
+        ><Clock :size="16" /><span>待命 · {{ countdown }}</span></template
       >
       <select
         v-if="schedule"
@@ -71,7 +70,7 @@ const spend = computed(() => agentState.value?.spend);
         @change="setSchedule(($event.target as HTMLSelectElement).value)"
       >
         <option v-for="m in schedule.presets" :key="m" :value="m">{{ every(m) }}</option>
-        <option value="off">Off</option>
+        <option value="off">关闭</option>
       </select>
       <select
         v-if="schedule"
@@ -86,7 +85,7 @@ const spend = computed(() => agentState.value?.spend);
           :key="n"
           :value="n"
         >
-          {{ n }} cards
+          最多 {{ n }} 张
         </option>
       </select>
     </div>
@@ -96,12 +95,12 @@ const spend = computed(() => agentState.value?.spend);
         data-cap="usage"
         :title="
           spend
-            ? `Total spend: model ${usd(spend.modelUsd)}, jev ${usd(spend.jevUsd)}, images ${usd(spend.imageUsd)}`
-            : 'Total spend'
+            ? `旧版已知费用投影：模型 ${usd(spend.modelUsd)}，Jev ${usd(spend.jevUsd)}，图片 ${usd(spend.imageUsd)}。完整费用和未知覆盖请查看扫描详情。`
+            : '查看扫描费用与未知覆盖'
         "
         @click="go('/executions/usage')"
       >
-        <Coins :size="15" />{{ usd(spend?.totalUsd ?? 0) }}
+        <Coins :size="15" />费用与覆盖
       </button>
       <span class="stat device" :title="`Device ${info?.device ?? ''}`" data-testid="device"
         ><Server :size="15" />{{ info?.deviceName ?? info?.device ?? "device" }}</span
@@ -113,10 +112,11 @@ const spend = computed(() => agentState.value?.spend);
         title="Executions"
         @click="go('/executions')"
       >
-        <Activity :size="16" /><span>Executions</span>
+        <Activity :size="16" /><span>执行记录</span>
       </button>
+      <button class="bar-button" @click="go('/evaluations')"><span>评测中心</span></button>
       <button class="bar-button" aria-label="Settings" title="Settings" @click="ui.settings = true">
-        <SlidersHorizontal :size="16" /><span>Settings</span>
+        <SlidersHorizontal :size="16" /><span>偏好设置</span>
       </button>
       <button
         class="bar-button"
@@ -126,7 +126,7 @@ const spend = computed(() => agentState.value?.spend);
         title="News column"
         @click="toggle('feed')"
       >
-        <PanelLeft :size="16" /><span>News</span>
+        <PanelLeft :size="16" /><span>情报</span>
       </button>
       <button
         class="bar-button"
@@ -136,7 +136,7 @@ const spend = computed(() => agentState.value?.spend);
         title="Agent column"
         @click="toggle('agent')"
       >
-        <PanelRight :size="16" /><span>Agent</span>
+        <PanelRight :size="16" /><span>研究 Agent</span>
       </button>
     </div>
   </header>

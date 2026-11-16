@@ -37,15 +37,15 @@ const at = (t?: number) =>
       <CopyJson :value="detail" label="tool call" />
     </div>
     <dl class="facts-grid">
-      <dt>Duration</dt>
+      <dt>耗时</dt>
       <dd data-field="duration">{{ ms(detail.durationMs) }}</dd>
-      <dt>Started</dt>
+      <dt>开始</dt>
       <dd data-field="started">{{ at(detail.startedAt) }}</dd>
-      <dt>Ended</dt>
+      <dt>结束</dt>
       <dd data-field="ended">{{ at(detail.endedAt) }}</dd>
-      <dt>Context</dt>
+      <dt>上下文</dt>
       <dd data-field="context">{{ k(detail.contextTokens ?? 0) }} tokens</dd>
-      <dt>Tokens</dt>
+      <dt>Token 用量</dt>
       <dd data-field="tokens">
         {{
           detail.generation
@@ -53,20 +53,20 @@ const at = (t?: number) =>
             : "none"
         }}
       </dd>
-      <dt>Cost</dt>
+      <dt>历史费用投影</dt>
       <dd data-field="cost">
         {{ usd(detail.toolCostUsd + (detail.paidUsd ?? 0)) }} tool,
         {{ usd(detail.generation?.costUsd) }} generation
       </dd>
-      <dt>Call</dt>
+      <dt>调用标识</dt>
       <dd class="mono">{{ detail.callId }} task {{ detail.taskId }}</dd>
     </dl>
-    <h4>Arguments</h4>
+    <h4>原始输入</h4>
     <JsonView :value="detail.args" />
-    <h4>Result</h4>
+    <h4>工具结果</h4>
     <pre class="code" :class="{ bad: detail.isError }">{{ clean(detail.resultText ?? "") }}</pre>
     <template v-if="detail.jevCalls.length">
-      <h4><BadgeCheck :size="14" />jev calls</h4>
+      <h4><BadgeCheck :size="14" />Jev 调用</h4>
       <div v-for="j in detail.jevCalls" :key="j.id" class="sub-row">
         <span class="mono">{{ j.command }}</span
         ><span>{{ ms(j.elapsedMs) }}</span
@@ -88,7 +88,7 @@ const at = (t?: number) =>
       </div>
     </template>
     <template v-if="detail.childRuns.length && (depth ?? 0) < 2">
-      <h4><Users :size="14" />Subagent runs</h4>
+      <h4><Users :size="14" />研究子 Agent</h4>
       <RunTree
         v-for="r in detail.childRuns"
         :key="r.runEntryId"

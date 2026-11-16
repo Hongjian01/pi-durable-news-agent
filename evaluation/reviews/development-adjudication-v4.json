@@ -1,0 +1,21 @@
+{
+ "version":4,
+ "origin":"codex_model_assisted",
+ "adoptedForDevelopment":true,
+ "humanReviewed":false,
+ "independentReview":false,
+ "requestedApiJudge":{"provider":"deepseek","model":"deepseek-flash","sameAsMainAgent":true,"status":"configured_not_executed_in_automation"},
+ "purpose":"User-authorized model-assisted adjudication replaces the human review step for this development campaign. It does not become human gold.",
+ "cases":[
+  {"taskId":"pilot-01","experiment":"run-bfd6dd46-b852-4c9f-a00e-91ec53c081ec","requiredFacts":"1/1 covered","decision":"required_facts_supported","reason":"ALLOW/DENY/ASK are explicitly stated and cited; exact wording differs from reference."},
+  {"taskId":"pilot-02","experiment":"run-68ea65d4-bb19-49e0-be12-43bc62d2b3d9","requiredFacts":"0/2 covered","decision":"failed_task_alignment","reason":"Valid permission-system claims do not answer whether candidate filtering itself grants authorization. Keep as a real regression failure."},
+  {"taskId":"pilot-03","experiment":"run-bfd6dd46-b852-4c9f-a00e-91ec53c081ec","requiredFacts":"2/2 covered","decision":"required_facts_supported","reason":"Draft status and preparation date are grounded in the frozen status line with source scope preserved."},
+  {"taskId":"pilot-04","experiment":"run-bfd6dd46-b852-4c9f-a00e-91ec53c081ec","requiredFacts":"2/2 covered","decision":"required_facts_supported","reason":"Resume and fork are stated; step-boundary limitations are preserved."},
+  {"taskId":"pilot-05","experiment":"run-d10c0018-8981-4117-a43c-e3e69b4ca519","requiredFacts":"2/2 covered","decision":"required_facts_supported","reason":"Later source sections are now read and cited for per-delegate budgets and the models field."},
+  {"taskId":"pilot-06","experiment":"run-bfd6dd46-b852-4c9f-a00e-91ec53c081ec","decision":"protocol_revised_not_retroactively_rescored","reason":"The old prompt only asked execution location; v4 now explicitly asks the client/configuration detail already present in the reference. Old output is not evidence of performance on an unseen revised prompt."},
+  {"taskId":"pilot-empty","experiment":"run-bfd6dd46-b852-4c9f-a00e-91ec53c081ec","decision":"passed_structural_no_news","reason":"Empty candidates terminate without cards; all structural assertions pass."}
+ ],
+ "automaticTrainingPromotion":false,
+ "aggregateQualityRate":null,
+ "aggregateQualityRateReason":"Cases were selected from different source/protocol versions; this is an adjudication collection, not a controlled success-rate estimate."
+}

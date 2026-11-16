@@ -1,0 +1,6 @@
+{
+ "corpus":"evaluation/corpora/adjacent-concepts-v1",
+ "labels":"evaluation/annotations/adjacent-concepts-v1",
+ "provider":"deepseek","model":"deepseek-flash","researchModel":"deepseek-flash",
+ "budgetScope":"openrouter-credits","components":false,"repeats":1
+}

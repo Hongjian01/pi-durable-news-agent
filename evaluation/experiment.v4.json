@@ -1,0 +1,9 @@
+{
+  "labels":"evaluation/annotations/v4",
+  "provider":"deepseek",
+  "model":"deepseek-flash",
+  "researchModel":"deepseek-flash",
+  "budgetScope":"openrouter-credits",
+  "repeats":1,
+  "components":false
+}

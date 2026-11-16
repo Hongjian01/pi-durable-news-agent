@@ -1,15 +1,17 @@
 // Open dna.sqlite (WAL), migrate, seed defaults on first run, and expose one repo per table group.
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { lockFile } from "@dna/durable-agent";
-import { type Db, openDb } from "./db.ts";
+import { type Db, openDb, tx } from "./db.ts";
 import { migrate } from "./migrate.ts";
 import { NewsRepo } from "./repos/news.ts";
 import { SettingsRepo } from "./repos/settings.ts";
-import { SourcesRepo, type SourceSeed } from "./repos/sources.ts";
+import { SourcesRepo } from "./repos/sources.ts";
 import { SweepsRepo } from "./repos/sweeps.ts";
-import { TasteRepo, type KeywordKind } from "./repos/taste.ts";
+import { LifecycleRepo } from "./repos/lifecycle.ts";
+import { SubmissionsRepo } from "./repos/submissions.ts";
+import { TasteRepo } from "./repos/taste.ts";
 import { TelemetryRepo } from "./repos/telemetry.ts";
+import { preset } from "../news/presets.ts";
 
 export interface Store {
   db: Db;
@@ -18,6 +20,8 @@ export interface Store {
   news: NewsRepo;
   taste: TasteRepo;
   sweeps: SweepsRepo;
+  lifecycle: LifecycleRepo;
+  submissions: SubmissionsRepo;
   telemetry: TelemetryRepo;
   close(): void;
 }
@@ -26,7 +30,13 @@ export function openStore(dataDir: string, configDir: string): Store {
   const path = join(dataDir, "dna.sqlite");
   const unlock = lockFile(`${path}.lock`);
   const db = openDb(path);
-  migrate(db);
+  try {
+    migrate(db);
+  } catch (error) {
+    db.close();
+    unlock();
+    throw error;
+  }
   const store: Store = {
     db,
     settings: new SettingsRepo(db),
@@ -34,6 +44,8 @@ export function openStore(dataDir: string, configDir: string): Store {
     news: new NewsRepo(db),
     taste: new TasteRepo(db),
     sweeps: new SweepsRepo(db),
+    lifecycle: new LifecycleRepo(db),
+    submissions: new SubmissionsRepo(db),
     telemetry: new TelemetryRepo(db),
     close() {
       try {
@@ -44,28 +56,25 @@ export function openStore(dataDir: string, configDir: string): Store {
     },
   };
   store.news.refreshReleases(true);
-  const sources = (
-    JSON.parse(readFileSync(join(configDir, "sources.json"), "utf8")) as { sources: SourceSeed[] }
-  ).sources;
+  const { sources, keywords } = preset(configDir);
   const key = (s: { kind: string; url?: string; query?: string }) =>
     `${s.kind}|${s.url ?? ""}|${s.query ?? ""}`;
   if (!store.settings.get("seeded", false)) {
-    const keywords = JSON.parse(readFileSync(join(configDir, "keywords.json"), "utf8")) as Record<
-      KeywordKind,
-      string[]
-    >;
-    store.sources.seed(sources);
-    store.taste.seed(keywords);
-    store.settings.set("seeded", true);
-    store.settings.set("seededSources", sources.map(key));
-  } else {
-    // A source added to config/sources.json later reaches existing devices once; one the reader removed stays removed.
-    const seeded = new Set(
-      store.settings.get<string[]>("seededSources", store.sources.list().map(key)),
-    );
-    const added = sources.filter((s) => !seeded.has(key(s)));
-    if (added.length) store.sources.seed(added);
-    store.settings.set("seededSources", [...seeded, ...added.map(key)]);
+    // An old/imported directory can lack the marker but already contain user
+    // data. Initial defaults must never fill or replace those preferences.
+    const populated =
+      store.sources.list().length ||
+      store.taste.keywords().length ||
+      store.news.cards({ limit: 1 }).length ||
+      store.sweeps.list(1).length;
+    tx(db, () => {
+      if (!populated) {
+        store.sources.seed(sources);
+        store.taste.seed(keywords);
+        store.settings.set("seededSources", sources.map(key));
+      }
+      store.settings.set("seeded", true);
+    });
   }
   return store;
 }

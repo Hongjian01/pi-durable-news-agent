@@ -1,0 +1,12 @@
+[
+  {
+    "id": "replace-with-sample-id",
+    "itemId": 1,
+    "snapshotId": 1,
+    "cluster": "replace-with-conservative-story-family",
+    "split": "dev",
+    "language": "zh",
+    "source": "replace-with-source-and-provenance",
+    "license": "replace-with-reviewed-usage-permission"
+  }
+]

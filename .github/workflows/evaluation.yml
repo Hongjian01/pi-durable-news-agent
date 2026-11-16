@@ -1,0 +1,46 @@
+name: Agent evaluation regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: evaluation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  offline:
+    name: Agent evaluation / offline
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DNA_ENV_FILE: none
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.21.0
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Type checks
+        run: npm run check
+      - name: Offline regression
+        run: |
+          mkdir -p test-results
+          set -o pipefail
+          node --import tsx --test scripts/eval-tasks/*.test.mjs apps/dna-server-api/tests/research-plan.test.ts apps/dna-server-api/tests/report-citations.test.ts apps/dna-server-api/tests/model-policy.test.ts apps/dna-server-api/tests/snapshot-window.test.ts apps/dna-server-api/tests/evaluations.test.ts 2>&1 | tee test-results/offline-tests.log
+      - name: Deterministic grader calibration
+        run: npm run eval:calibrate -- --labels evaluation/annotations/v4 --check --out test-results/ci-calibration
+      - name: Seven-task fixture smoke
+        run: |
+          npm run eval:tasks -- --config evaluation/experiment.v4.json --backend fixture --research-candidates 2 --out test-results/ci-fixture
+          node scripts/eval-tasks/ci-gate.mjs --input test-results/ci-fixture --mode fixture
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agent-evaluation-offline-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 14

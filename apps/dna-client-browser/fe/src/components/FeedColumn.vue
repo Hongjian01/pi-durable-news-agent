@@ -4,13 +4,15 @@
 import { computed } from "vue";
 import { GitCommitVertical, Hash, Link, Newspaper, Search, X } from "@lucide/vue";
 import { closeTab, layout, tabKey, type FeedTab } from "../client/layout";
-import { feed, feedState, loaded } from "../client/store";
+import { feed, feedState, loaded, bookmarks } from "../client/store";
 import BottomPane from "./BottomPane.vue";
 import FeedRow from "./FeedRow.vue";
 import LoadingRows from "./LoadingRows.vue";
 import SearchBox from "./SearchBox.vue";
 import SearchView from "./SearchView.vue";
 import TimelineView from "./TimelineView.vue";
+import ScanPanel from "./ScanPanel.vue";
+import SavedView from "./SavedView.vue";
 
 const ICONS = { timeline: GitCommitVertical, search: Search, keyword: Hash, url: Link };
 const counts = computed(() => {
@@ -39,7 +41,16 @@ const active = computed(() => layout.tabs.find((t) => tabKey(t) === layout.tab))
           :aria-selected="layout.tab === 'news'"
           @click="layout.tab = 'news'"
         >
-          <Newspaper :size="15" /><span>News</span><small>{{ news.length }}</small>
+          <Newspaper :size="15" /><span>最新情报</span><small>{{ news.length }}</small>
+        </button>
+        <button
+          role="tab"
+          class="feed-tab"
+          data-tab="saved"
+          :aria-selected="layout.tab === 'saved'"
+          @click="layout.tab = 'saved'"
+        >
+          收藏 <small>{{ bookmarks.length }}</small>
         </button>
         <div
           v-for="t in layout.tabs"
@@ -68,10 +79,12 @@ const active = computed(() => layout.tabs.find((t) => tabKey(t) === layout.tab))
       </nav>
       <SearchBox />
     </div>
-    <BottomPane v-if="!active" :count="news.length" label="News" class="feed-list">
+    <ScanPanel />
+    <SavedView v-if="layout.tab === 'saved'" />
+    <BottomPane v-else-if="!active" :count="news.length" label="News" class="feed-list">
       <LoadingRows v-if="!loaded" kind="cards" :count="3" label="Loading the news" />
       <p v-else-if="!news.length" class="empty">
-        Nothing yet. The agent sweeps on its schedule and only presents news worth your attention.
+        尚无情报。开始一次扫描，查看 Jev 筛选、研究与来源核验的完整过程。
       </p>
       <FeedRow v-for="card in news" :key="card.id" :card="card" />
     </BottomPane>

@@ -1,0 +1,22 @@
+{
+  "version":4,
+  "taskId":"pilot-06",
+  "experiment":"run-6b98e160-7bc2-44c0-b025-4d4190bba20a",
+  "origin":"codex_model_assisted",
+  "humanReviewed":false,
+  "independentReview":false,
+  "automaticOutcome":"needs_review",
+  "decision":"required_facts_supported",
+  "requiredFactsSatisfied":2,
+  "requiredFactsTotal":2,
+  "structuralChecksPassed":true,
+  "answerSpan":"该文档称代理的命令和文件编辑在另一台主机上通过 SSH 执行，使用用户自己的 ssh 客户端及其配置。",
+  "sourceSpan":"Run your agent's commands and file edits on another machine over SSH, using your own `ssh` client and its configuration.",
+  "snapshotId":7,
+  "bodyHash":"b78af92c920fdc5430c235d370806cc3ac7d687dae67e87bbed9b503bc512306",
+  "start":185,
+  "end":305,
+  "rationale":"新题面已明确要求执行位置与连接方式，答案明确回答远端执行并复用用户已有 ssh 客户端及配置，有对应完整原文引用。不再依赖从 SSHWorkspace 示例隐含推出客户端细节。原始精确文本评分不变。",
+  "apiRegradeExecuted":false,
+  "automaticTrainingPromotion":false
+}

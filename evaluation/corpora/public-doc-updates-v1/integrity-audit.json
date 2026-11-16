@@ -1,0 +1,11 @@
+{
+  "documents": 180,
+  "normalizedBodyHashes": "passed",
+  "automaticSensitiveScan": "passed_not_manual_signoff",
+  "provenCommitDates": "passed",
+  "shallowBoundaryExcluded": true,
+  "sourceBlobAtUpdateEqualsCapturedRevision": "passed",
+  "allWithin14DayWindow": true,
+  "humanLabels": 0,
+  "paidApi": false
+}

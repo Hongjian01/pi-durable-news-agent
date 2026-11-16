@@ -4,6 +4,7 @@
  * selection or node:test isolation; missing production credentials fail closed.
  */
 import { MockJev } from "./mock.ts";
+import { providerErrorDetails } from "./http-error.ts";
 import {
   QuestionValidationError,
   validateRequest,
@@ -63,6 +64,8 @@ export interface JevClientOptions {
   timeoutMs?: number;
   /** Exponential backoff base, plus up to 20% jitter. Default: 500 ms; 0 is allowed. */
   retryDelayMs?: number;
+  /** Total real requests; set 1 when the durable operation owns retries. */
+  maxAttempts?: number;
   /** Used only when usage.cost is not a valid reported cost. Snapshotted at construction. */
   pricing?: JevPricing;
 }
@@ -110,6 +113,7 @@ export class JevClient {
   private readonly model?: string;
   private readonly timeoutMs: number;
   private readonly retryDelayMs: number;
+  private readonly maxAttempts: number;
   private pricing?: JevPricing;
   private listeners: ((event: JevEvent) => void)[] = [];
   /** Count of validated systemOne calls, for the demo's cost story. */
@@ -127,6 +131,9 @@ export class JevClient {
     this.model = opts.model;
     this.timeoutMs = opts.timeoutMs ?? REQUEST_TIMEOUT_MS;
     this.retryDelayMs = opts.retryDelayMs ?? 500;
+    this.maxAttempts = opts.maxAttempts ?? MAX_ATTEMPTS;
+    if (!Number.isInteger(this.maxAttempts) || this.maxAttempts < 1 || this.maxAttempts > 4)
+      throw new Error("maxAttempts must be 1..4");
     if (
       !Number.isInteger(this.timeoutMs) ||
       this.timeoutMs <= 0 ||
@@ -221,7 +228,7 @@ export class JevClient {
     }, this.timeoutMs);
     const signal = opts.signal ? AbortSignal.any([deadline.signal, opts.signal]) : deadline.signal;
     try {
-      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
         signal.throwIfAborted();
         const res = await fetch(this.endpoint!, {
           method: "POST",
@@ -231,7 +238,7 @@ export class JevClient {
           redirect: "error",
         });
         signal.throwIfAborted();
-        if (RETRY_STATUSES.has(res.status) && attempt < MAX_ATTEMPTS) {
+        if (RETRY_STATUSES.has(res.status) && attempt < this.maxAttempts) {
           const backoff = this.retryDelayMs * 2 ** (attempt - 1) * (1 + Math.random() * 0.2);
           const delay = Math.min(
             8000,
@@ -242,14 +249,24 @@ export class JevClient {
           continue;
         }
         if (!res.ok) {
-          await res.body?.cancel();
+          const details = await providerErrorDetails(res, this.apiKey!);
+          signal.throwIfAborted();
           const hint =
             res.status === 401
               ? ` Check the ${KEY_ENV[this.provider]} key.`
               : res.status === 402
                 ? " Check account credits."
                 : "";
-          throw new Error(`${this.provider} HTTP ${res.status}.${hint}`);
+          throw Object.assign(
+            new Error(
+              `${this.provider} HTTP ${res.status}.${hint}${details.providerMessage ? " " + details.providerMessage : ""}${details.limitSource ? " [limit_source=" + details.limitSource + "]" : ""}`,
+            ),
+            {
+              status: res.status,
+              ...details,
+              retryAfterMs: retryAfterMs(res.headers.get("retry-after")),
+            },
+          );
         }
         const responseText = await res.text();
         signal.throwIfAborted();

@@ -32,6 +32,7 @@ function seedCard(store: any, title: string, matchedTopic?: string) {
 test("show me more and less move the matched topic weight, clamped", () => {
   const { store, cleanup } = tempStore();
   try {
+    store.taste.addKeyword("topic", "Claude Code");
     const card = seedCard(store, "Claude Code ships a new hook", "Claude Code");
     const before = store.taste.findKeyword("topic", "Claude Code")!.weight;
     const more = applyFeedback(store, card, { signal: "more" });
@@ -63,6 +64,12 @@ test("labels move section keywords found in the card", () => {
 test("a sweep's bag of topics is a draw weighted by favor, and a second bag skips the first", () => {
   const { store, cleanup } = tempStore();
   try {
+    for (const term of [
+      "pi-durable",
+      "exe.dev",
+      ...Array.from({ length: 20 }, (_, i) => `explicit sampling fixture ${i}`),
+    ])
+      store.taste.addKeyword("topic", term);
     const all = store.taste.keywords("topic", true);
     const heavy = store.taste.findKeyword("topic", "pi-durable")!;
     const light = store.taste.findKeyword("topic", "exe.dev")!;

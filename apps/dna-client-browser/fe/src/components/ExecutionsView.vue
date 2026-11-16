@@ -26,6 +26,7 @@ import {
 import { go, route } from "../client/route";
 import { api, attempt, now } from "../client/store";
 import { clean } from "../client/text";
+import { statusName } from "../client/product";
 import ExecChildren from "./ExecChildren.vue";
 import LogsPanel from "./LogsPanel.vue";
 import RunTree from "./RunTree.vue";
@@ -119,7 +120,7 @@ const close = () => go("/");
   <div class="executions" role="dialog" aria-label="Executions" @keydown.esc="close">
     <header class="exec-head">
       <ListTree :size="18" />
-      <h2>Executions</h2>
+      <h2>执行记录</h2>
       <span class="grow" />
       <button
         class="tab"
@@ -127,10 +128,10 @@ const close = () => go("/");
         data-cap="usage"
         @click="go('/executions/usage')"
       >
-        <Coins :size="15" />Usage
+        <Coins :size="15" />费用与用量
       </button>
       <button class="tab" :class="{ on: sel.kind === 'logs' }" @click="go('/executions/logs')">
-        <ScrollText :size="15" />Logs
+        <ScrollText :size="15" />运行日志
       </button>
       <button class="icon-button" aria-label="Close executions" @click="close">
         <X :size="18" />
@@ -152,9 +153,11 @@ const close = () => go("/");
               <span v-else class="twisty" />
               <button class="row-main" @click="select(e)">
                 <template v-if="e.sweep">
-                  <Clock :size="13" /><strong>Sweep {{ e.sweep.id }}</strong
-                  ><span class="status" :class="e.sweep.status">{{ e.sweep.status }}</span
-                  ><span class="muted">{{ e.sweep.presented }} cards</span>
+                  <Clock :size="13" /><strong>扫描 {{ e.sweep.id }}</strong
+                  ><span class="status" :class="e.sweep.status">{{
+                    statusName(e.sweep.status)
+                  }}</span
+                  ><span class="muted">{{ e.sweep.presented }} 张卡片</span>
                 </template>
                 <template v-else-if="e.run">
                   <MessageSquare :size="13" /><strong>{{ chatKind(e.run) }}</strong
@@ -188,7 +191,11 @@ const close = () => go("/");
         </template>
         <template v-else-if="sel.kind === 'logs'"><LogsPanel /></template>
         <template v-else>
-          <h3>Usage per day</h3>
+          <h3>历史用量投影</h3>
+          <p class="muted">
+            此表保留旧版统计口径，不包括所有未知费用。请选择左侧扫描，查看
+            Jev、研究模型、搜索抓取的报告费用、估算费用及未知覆盖率。
+          </p>
           <table class="usage">
             <thead>
               <tr>

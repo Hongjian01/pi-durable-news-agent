@@ -1,0 +1,375 @@
+{
+  "sourceRevision": "working-copy",
+  "startedAt": "2026-10-27T05:44:52.671Z",
+  "platform": "linux",
+  "node": "v24.21.0",
+  "executable": "/home/hongjian/.nvm/versions/node/v24.21.0/bin/node",
+  "lockSha256": "2d61a1e8410b1fba5704ad7a5d65b1be1a365e1499d1567e44f016f351939a37",
+  "paidApi": false,
+  "results": [
+    {
+      "name": "types",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 13180
+    },
+    {
+      "name": "dnajev",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/jev"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 425,
+      "tests": 19,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dnadurable-agent",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/durable-agent"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3234,
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dnasdk",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "@dna/sdk"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 419,
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-server-api",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-api"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 98132,
+      "tests": 135,
+      "pass": 134,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1
+    },
+    {
+      "name": "dna-server-cron",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-server-cron"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 2230,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-cli",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-cli"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 6964,
+      "tests": 5,
+      "pass": 5,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "dna-client-tui",
+      "command": [
+        "npm",
+        "test",
+        "-w",
+        "dna-client-tui"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 541,
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "hub",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-client-browser/hub/tests/*.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 128,
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-build",
+      "command": [
+        "npm",
+        "run",
+        "build",
+        "-w",
+        "dna-client-browser"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 3588
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "run",
+        "lint"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 219
+    },
+    {
+      "name": "format",
+      "command": [
+        "npm",
+        "run",
+        "fmt:check"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 1019
+    },
+    {
+      "name": "faux-recovery",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "--test",
+        "apps/dna-server-api/tests/sweep-faux.test.ts",
+        "apps/dna-server-api/tests/recovery.test.ts",
+        "apps/dna-server-api/tests/auth.test.ts",
+        "apps/dna-server-api/tests/workflow.test.ts",
+        "apps/dna-server-api/tests/stream.test.ts",
+        "apps/dna-server-api/tests/executions.test.ts"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 12898,
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    {
+      "name": "browser-ui",
+      "command": [
+        "node",
+        "apps/dna-client-browser/tests/ui-faux.mjs"
+      ],
+      "code": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 20098
+    }
+  ],
+  "finishedAt": "2026-10-27T05:47:35.755Z",
+  "milestone": "M1",
+  "spec": "docs/SPEC.md",
+  "finalApiVerification": {
+    "tests": 136,
+    "reason": "Complete API rerun after final date-disposition fix",
+    "log": "test-results/m1-final-addendum/api.log",
+    "skipped": 1,
+    "fail": 0,
+    "typesLog": "test-results/m1-final-addendum/types.log",
+    "pass": 135
+  },
+  "browserChecks": 79,
+  "sdkContract": {
+    "log": "test-results/m1-final-addendum/sdk-contract.log",
+    "pass": 2,
+    "fail": 0
+  },
+  "fixture": {
+    "directory": "/var/tmp/agentradar-m1-20261027/test-results/m1-fixture",
+    "status": "completed",
+    "gathered": 12,
+    "kept": 8,
+    "cards": 4,
+    "researchRuns": 2,
+    "audit": {
+      "expected": [
+        "scan",
+        "all_item_dispositions",
+        "research_evidence_hfs",
+        "complete_sweep"
+      ],
+      "done": [
+        "scan",
+        "all_item_dispositions",
+        "research_evidence_hfs",
+        "complete_sweep"
+      ],
+      "missing": []
+    },
+    "paidApi": false
+  },
+  "sourceSha256": {
+    "apps/dna-server-api/src/news/schedule.ts": "b344119be0a309f9aedc23f8f0038903b75af072676927380ae80b102fb6130f",
+    "apps/dna-server-api/src/db/repos/lifecycle.ts": "daa7efdeeb4473cc873643f7d6b9da6f38b328a5346689cf8cd62c05a06d70d1",
+    "apps/shared/packages/durable-agent/src/lock.ts": "2d526425dd303287614421d4a24e69c7340daa2e8cfb926f821c00dcd7c8a128",
+    "apps/dna-server-api/src/agents/tools/report-findings.ts": "0ffc244b1a2cedfc78f162fe83a141c01ff24800dc9322aef58d51e431c6e3fb",
+    "scripts/m1/inspect-duplicates.ts": "437a90194eb9bbb42a2a96523befb14243836c58b49ad9ca159cc8f21da1e8b0",
+    "apps/dna-server-api/src/news/search/index.ts": "47add3f8967d79a8a5efb019fdcbb02e4aa75ef424f19dc8eb1f8f2bb2f101e0",
+    "apps/dna-server-api/tests/schedule.test.ts": "b4aa2a07bd8d6c93907161b737dbe7a58f84246a1c3329cb8d64fa964cc5746d",
+    "apps/dna-server-api/src/agents/tools/present.ts": "abac75d8a30c46cad0eea5a46d7824d3580532b282c5473505c72c92c1dc1451",
+    "apps/dna-server-api/tests/submissions.test.ts": "22698446edfc0801e0cdebdf2414a21ed044bb0d2d75ebd30dfc94983a772048",
+    "apps/dna-server-api/src/db/repos/news.ts": "8b73d09ae48904ba1e6170f507e42621b79d155a73950cbdbd44a9c31352228c",
+    "apps/dna-server-api/src/db/migrate.ts": "3bc0fe9d86787c6a9534ee868505d03545791f2d5cc5a22502eabcd0441107e8",
+    "apps/shared/packages/jev/src/client.ts": "6d0dcc7ab1dbf9dacea87afd30cb7706e21d8e6efc3dd810c3ef32d40fa63359",
+    "scripts/m0/sdk-contract-host.ts": "081ad3c39096c78d95cc356fa51c94c5aeddbdec188f937d1e6c97ed7f28fe72",
+    "apps/dna-server-api/src/news/lifecycle.ts": "67da5109fdfba7a3bb563fd36d4953c7d76e777decaa4998ed2fef8ea41d94e2",
+    "apps/dna-server-api/src/config.ts": "692d58888fb1b34a177ed7dc87a13c8d14d9629eab014165586ff96ea959a019",
+    "apps/dna-server-api/src/routes/workflows.ts": "3098cf680b74a8e9a7ad56eb0548329986afaee4370cf3c8cd67525907c745c4",
+    "scripts/m0/sdk-contract.test.ts": "cd08f5d8dd11f305e2bab03d271e3e23d5ddde60b8a39931c557ad790376cb97",
+    "apps/dna-server-api/src/db/repos/submissions.ts": "2e5ab8d1332d60c919e266e0699d856ce03aa8dac2a579c54122eb8945412bdb",
+    "scripts/m0/tsconfig.json": "ab9ae6170c29eb7241275a8f381d48a285e3c738f4505dcf75cb68592a7f93fe",
+    "apps/dna-server-api/src/news/page.ts": "f5103116dd9427904f80314019239410ba1f428ed26f699af0b1c0f7366dd09d",
+    "apps/dna-client-browser/fe/src/components/TopBar.vue": "8e830053cc5c4725d709d322eb95933ea588795c897900842dbcb3d51622ccfe",
+    "apps/shared/packages/dna-sdk/src/routes.ts": "ec635edc7d46ceef916a20ba7851a52e1731948b27917f60fa12adee847d532f",
+    "apps/dna-server-api/src/news/image-task.ts": "b079583367b04f2955d73d87e13fcdaa0063e7ed4c9b674a6fcd83594565f076",
+    "scripts/m1/tsconfig.json": "4bb8960d25fe96653b4a20115d7d56cf15ec6d9fff4277fa42219457d0d4c5f7",
+    "apps/dna-server-api/src/news/submissions.ts": "0b83ec3c90d81b3a2e5e7c3d4f0fe6839c8e84e8f59fcb950f781a2ce3bea3d7",
+    "apps/dna-server-api/src/agents/tools/complete-sweep.ts": "d74825c596d5ac7f3b189a22dec5354eeaede2236117b55b3452a31c8574ef66",
+    "apps/shared/packages/dna-sdk/src/capabilities.ts": "fb953609e271884ffc7a3f705ff417b3d3ac1923ead2b587f3134415ee674730",
+    "apps/dna-server-api/src/news/sweep-task.ts": "52c131a57fc8362ee1a1f15623bd0a6e7fb4f3a892247ae2591ababe635d312c",
+    "apps/dna-server-api/src/db/repos/sweeps.ts": "a00597c463076fc9f1f357827d033e78912369638b9b67e1d297744c8f3824b6",
+    "scripts/m1/inspect-fixture.ts": "92b4d1074d36971b2fd16560279b57f293405f54ba78c8e00a00831591c2f54d",
+    "apps/dna-server-api/tests/workflow.test.ts": "864f99c4bc676fefcbabc8dd8020d954c975aa5b0150ee36d86f73307d771e15",
+    "apps/dna-server-api/src/news/operations.ts": "71a4140abbef7ed23d76238ff1dc02b60f79f1f504939d1b8e382debc2438d8d",
+    "apps/dna-server-api/src/agents/tools/run-news-sweep.ts": "ae1b7ed69bbba03fdf4670f5f8b11b22756b0794c1f8fd8da28e4c5d8bc6e2ed",
+    "apps/dna-server-api/src/news/execution.ts": "dd196b7d2ef14ce0f477e2083091abad0672202b8c0f8c31963aa32193420966",
+    "apps/dna-server-api/tests/stream.test.ts": "63a1797c3b8ad63b1c76c12dcd50ec5c50b609bb6b4c11535244fb293cadcd8c",
+    "apps/dna-server-api/src/runtime.ts": "142952353f7dc853731a49aa344a6e8e96b619d4fa65f17db05aaf65efe68d49",
+    "apps/dna-server-api/src/db/store.ts": "8c4e11ecde28e1cc744360ca928b3b35a0a5a18b00bfc7d8e8b1f25016e4e046",
+    "apps/dna-server-api/src/db/migrations/003_sweep_lifecycle.sql": "d5a87ed062de8399210db4104e920173e799a96144476434bb7151565a8df219",
+    "apps/dna-server-api/src/db/migrations/002_submission_outbox.sql": "f1568677feb8fb723eacc10208854009580a266831256065a0c3eaa768e591e6",
+    "apps/dna-server-api/tests/fixtures/outbox-host.ts": "77e78ee1e0b29cfbfac2b0ad1261cf34321f8aa177263720d31dae88f1519c9f",
+    "apps/dna-server-api/tests/lifecycle.test.ts": "aae4149c6c02c77becbb866e5edd4b1b7006a74985c320b9c437139277d4b698",
+    "apps/dna-server-api/src/news/finalization.ts": "bb7a1a73c25384849d1e3834113967c86266e2ac5e180417e54c0897bda42689",
+    "apps/dna-server-api/tests/helpers.ts": "ec55877d557d9f1148df329fe5f6dff079ebd6819d0c58e7f10e92e4fb086d48",
+    "apps/dna-server-api/src/agents/faux-script.ts": "085cf0c5ed73f5cd5b9dfe720cc9e585332d6a4ac7af25d252a1949d19b25766",
+    "apps/dna-server-api/src/db/execution.ts": "6b26df066d94c34b1c508b0810b447efc1f112870e38cec90700cf67ef76698d",
+    "apps/dna-server-api/src/news/sweep.ts": "356a58e8b95fa4e3749ddfa49526952f47ef3c99f4c42711ed986fffaf2718bd",
+    "apps/dna-server-api/src/db/db.ts": "8e4bb77e03f37c370c8da1ca84c63b4ee093b8738284e5e644ca73254747eafe",
+    "apps/shared/packages/durable-agent/tests/harness.test.ts": "caa52bb1dc715e79ec488fc516a89fb8584aa7c101b7947ba85d23f9216f0071",
+    "apps/dna-server-api/src/news/research-capacity.ts": "7f01fc045aacf41541721ce3c7525e66b66c02e2e629740345ad17cfe09d60bd",
+    "apps/dna-server-api/src/news/hfs.ts": "351b27a3de0215d55f8794c9de22c27f7bbcecb4d79e95799a5338aa8dcb087c",
+    "apps/dna-server-api/src/routes/agent.ts": "7abfe65c14e52ac8341a6dc81b9dda04a171bb6c4f8a5456aa56760a3a1bc14a",
+    "apps/dna-server-api/src/agents/index.ts": "737489fffbf17e20032d90cb20fae5dd8d394ed3c24f214aa50da77e7a213f47",
+    "apps/dna-server-api/tests/server.ts": "6f7473b684160a8ee09afcbcd45d308fab0785879e075e7d01b3f04005480f32",
+    "apps/dna-server-api/src/agents/tools/research-items.ts": "3c115ae5a2cdc666f579087d309e5710594da342d11be4e72ec4eec8f6bc3481",
+    "apps/dna-server-api/src/news/stories.ts": "388cd2cdee336d2388ebbbb364288f823d0271a67579e49ca4a160fe90cd6706",
+    "apps/dna-server-api/tests/lifecycle-recovery.test.ts": "47bb8641695ccf37e21810839c2e2c4288ca0792688589a408a4ce41d222152c",
+    "scripts/m1/backup.ts": "0cdf1b7e9381117e63978231247118db21e42e33b2efed5b341f75f1c733db5a",
+    "apps/dna-server-api/src/news/fixtures.ts": "da81da639eb2628f33aa8f8114b912d9afa0e65034cfaf3ab4df34b21b46b4fa",
+    "scripts/m0/run-wsl.sh": "7b739d2a24bec2f4de22d1e6477ce3927ecfb2d9ae136aba4f0c00551a9f652f",
+    "apps/shared/packages/dna-sdk/src/client.ts": "c43c223f2a1cf6603f1e1a7b0bd3a06ea11e3d896e497408d06e43e35f771e39",
+    "scripts/m0/fixture-smoke.ts": "ff6c1fef743396e757defc028fae415d3707f4a1574bd9e5a91b80046b76fe4d",
+    "apps/dna-server-api/tests/sweep-faux.test.ts": "cbe06defe4756f5e5e17e314ae94bf1487443e31490523351b17c351ca69daf5",
+    "apps/dna-client-browser/tests/ui-faux.mjs": "680eca0cac2e3c35e9369637ea5c2d0f15fb92d8d670f7f8f792c2a2e3bff12c",
+    "apps/dna-server-api/tests/fixtures/sweep-host.ts": "77c96dd1c3c6613f57092e9f633f655276d6cc0d0f9f0e81b0793ed505d7ef73",
+    "apps/dna-server-api/src/news/acceptance-context.ts": "e7905bc48ab3d890f3e562d31d9c8eb5250347de0dea38512f2505c0b9549b6f",
+    "apps/shared/packages/dna-sdk/src/api.ts": "ec17413153c4e53148a11b2bb5d40447ef127310edff5a16d2bb1e8ff5639303",
+    "apps/dna-server-api/tests/fixtures/lifecycle-host.ts": "56824aa0af4ee06d88d4d4d1f7065b27aaef08fedaef9472c8d26a562211d35b",
+    "apps/dna-server-api/src/news/faults.ts": "c6ab68c1c625028a9dc5753fdae9ddd5544165f1c446466ebd7b731336428115",
+    "apps/dna-server-api/src/news/judgment-wait.ts": "1442d371e596e96c52e5ed0b16aa5316c8f223f9a6580061435fcf2f61464bed",
+    "apps/dna-server-api/src/db/backup.ts": "a3e14d605a25d395b4951f4fc9b33fb0785f8b086d5620ba05b53776ef3fd99e",
+    "scripts/m0-baseline.mjs": "68a289ec4c7aa0a507eeda51ac5efeada802e4a565e5e81f140bab8f8d37dfba",
+    "apps/dna-server-api/tests/audit.test.ts": "0fa1753e8014c9d410e076c4f5e3815ccf27fd189b4570c2dcf64f38047b48fe"
+  },
+  "finalStaticChecks": {
+    "format": "passed",
+    "lint": {
+      "errors": 0,
+      "warnings": 9
+    },
+    "cleanupRegression": {
+      "pass": 13,
+      "fail": 0,
+      "log": "test-results/m1-final-addendum/cleanup-regression.log"
+    },
+    "sourceParityFiles": 72,
+    "scriptsTypes": "passed",
+    "scriptsLint": {
+      "errors": 0,
+      "warnings": 0
+    }
+  }
+}

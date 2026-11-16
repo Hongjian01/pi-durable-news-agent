@@ -3,10 +3,12 @@ import { ref } from "vue";
 
 export type Route =
   | { view: "main" }
+  | { view: "evaluations"; id?: string }
   | { view: "executions"; kind?: "run" | "tool" | "sweep" | "usage" | "logs"; id?: number };
 
 function parse(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
+  if (parts[0] === "evaluations") return { view: "evaluations", id: parts[1] };
   if (parts[0] !== "executions") return { view: "main" };
   const kind = parts[1] as "run" | "tool" | "sweep" | "usage" | "logs" | undefined;
   return { view: "executions", kind, id: parts[2] ? Number(parts[2]) : undefined };

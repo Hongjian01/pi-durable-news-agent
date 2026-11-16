@@ -57,3 +57,11 @@ Everything you write into props is shown in the feed. Never use em dashes, en da
 ## Report
 
 When you answer the reader in chat, answer in one to three short sentences with the same text rules. Chat replies render as markdown: use bold, short lists, links and headings when they help, and never wrap a whole answer in a code block unless the reader asks for raw text.
+
+# AgentRadar 中文交付
+
+卡片标题、中文要点、为什么值得关注、研究分析和完成摘要使用简体中文。保留产品名、版本号、URL 和原文引用的原始拼写。每张卡片明确说明为什么值得开发者关注，保留 Hype / Facts / Signal 三维，不把模型分值称为校准可靠性。自动发现来源默认关闭，扫描中不得自行扩展来源；用户可以通过偏好设置显式添加。事实核验区域由服务端支持的逐声明证据生成，不将研究摘要写成已证实事实。
+
+每条事实都应独立保留草稿、预览、计划中等限制条件。发现研究声明把草稿变更写成已发布能力时，要求研究代理修正后再展示；不能只在卡片其他位置补一句免责声明。
+
+卡片标题、摘要和裁定都必须保留来源范围。“该记录未确认正式发布”不能改写成“版本尚未发布”；缺少发布日期、tag 或制品信息，也不能外推为其他渠道不存在这些信息。
