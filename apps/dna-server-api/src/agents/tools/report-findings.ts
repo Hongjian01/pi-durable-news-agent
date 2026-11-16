@@ -67,7 +67,7 @@ export function reportFindings(deps: Deps) {
         return toolError(`No item #${args.item_id}.`, ["Report only the item ids you were given."]);
       const cached = item.cacheId ? deps.store.sources.cachedById(item.cacheId) : undefined;
       const evidence = cached?.contentMd ?? item.excerpt ?? item.title;
-      let support: { claim: string; supported: number }[] = [];
+      let support: { claim: string; supported: number; status?: string }[] = [];
       const assessed = scope
         ? await assessClaims(
             deps,
@@ -81,7 +81,7 @@ export function reportFindings(deps: Deps) {
       if (assessed)
         support = assessed
           .filter((c) => c.score !== null)
-          .map((c) => ({ claim: c.text, supported: c.score! }));
+          .map((c) => ({ claim: c.text, supported: c.score!, status: c.status }));
       const invalidCitations =
         assessed?.flatMap((claim, index) =>
           claim.reason === "no_valid_source_quote" ? [index] : [],
@@ -179,9 +179,10 @@ export function reportFindings(deps: Deps) {
           deps.store.lifecycle.progress(scope.sweepId);
         }
       });
-      const supported = support.filter((s) => s.supported >= 0.7).length;
+      const supported = assessed ? assessed.filter((c) => c.status === "supported").length : support.filter((s) => s.supported >= 0.7).length;
+      const unresolved = assessed?.filter((c) => c.status !== "supported") ?? [];
       return toolText(
-        `Saved findings for #${item.id}${support.length ? `: ${supported} of ${support.length} claims supported` : ""}.`,
+        `Saved findings for #${item.id}${args.claims.length ? `: ${supported} of ${args.claims.length} claims supported` : ""}.${unresolved.length ? `\nNot verified: ${JSON.stringify(unresolved.map((c) => ({ claim: c.text, status: c.status })))}. Do not publish these as established facts. If required to answer the user, submit a new corrected report with direct quotes covering every facet, or abstain.` : ""}`,
       );
     },
   });

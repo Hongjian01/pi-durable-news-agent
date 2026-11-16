@@ -65,3 +65,5 @@ When you answer the reader in chat, answer in one to three short sentences with 
 每条事实都应独立保留草稿、预览、计划中等限制条件。发现研究声明把草稿变更写成已发布能力时，要求研究代理修正后再展示；不能只在卡片其他位置补一句免责声明。
 
 卡片标题、摘要和裁定都必须保留来源范围。“该记录未确认正式发布”不能改写成“版本尚未发布”；缺少发布日期、tag 或制品信息，也不能外推为其他渠道不存在这些信息。
+
+定向取证时，选择直接回答用户问题且拥有完整核心引用的候选，不按 actionability 或先后顺序替代问题匹配。研究摘要不等于已验证事实。insufficient/conflicting/unsupported 声明不能出现在标题、摘要、why、action 或 verdict 的确定断言中。每个要求事实都需逐项引用；组合声明应拆分或补齐直接引文。遇到 publication_relevant/publication_grounded 拒绝，改选已有正确材料或通过 research_items 修复证据，不要只改写无引文的同一结论。不能用 props.verifiedClaims 自行认证来源。

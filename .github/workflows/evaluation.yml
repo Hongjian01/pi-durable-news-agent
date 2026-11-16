@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p test-results
           set -o pipefail
-          node --import tsx --test scripts/eval-tasks/*.test.mjs apps/dna-server-api/tests/research-plan.test.ts apps/dna-server-api/tests/research-delivery.test.ts apps/dna-server-api/tests/report-citations.test.ts apps/dna-server-api/tests/model-policy.test.ts apps/dna-server-api/tests/snapshot-window.test.ts apps/dna-server-api/tests/evaluations.test.ts 2>&1 | tee test-results/offline-tests.log
+          node --import tsx --test scripts/eval-tasks/*.test.mjs apps/dna-server-api/tests/research-plan.test.ts apps/dna-server-api/tests/research-delivery.test.ts apps/dna-server-api/tests/publication-support.test.ts apps/dna-server-api/tests/report-citations.test.ts apps/dna-server-api/tests/model-policy.test.ts apps/dna-server-api/tests/snapshot-window.test.ts apps/dna-server-api/tests/evaluations.test.ts 2>&1 | tee test-results/offline-tests.log
       - name: Deterministic grader calibration
         run: npm run eval:calibrate -- --labels evaluation/annotations/v4 --check --out test-results/ci-calibration
       - name: Seven-task fixture smoke

@@ -85,7 +85,7 @@ export interface Finding {
   claims: string[];
   evidence: string[];
   actionability?: string;
-  claimSupport: { claim: string; supported: number }[];
+  claimSupport: { claim: string; supported: number; status?: "supported" | "unsupported" | "insufficient" | "conflicting" }[];
   createdAt: string;
 }
 

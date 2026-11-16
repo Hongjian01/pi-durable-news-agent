@@ -66,7 +66,7 @@ export class Operations {
   ): Promise<JudgedResult> {
     const inputJson = canonicalJson(input);
     const context = identity ? evaluation(this.store, sweepId) : undefined;
-    const pair = ["same-story", "claim-support", "hfs"].includes(command)
+    const pair = ["same-story", "claim-support", "hfs", "publication-support"].includes(command)
       ? createHash("sha256").update(inputJson).digest("hex")
       : String(itemId ?? createHash("sha256").update(inputJson).digest("hex"));
     const key = `${context ? `v2:${context.id}:` : ""}${sweepId}:${command}:${itemId ?? "pair"}:${pair}`;

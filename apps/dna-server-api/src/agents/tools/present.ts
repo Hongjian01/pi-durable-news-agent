@@ -3,6 +3,7 @@
 // resolved or generated in the background). present_timeline links presented cards about one story in date order.
 import { Type } from "@earendil-works/pi-ai";
 import { publicationCapacityGap } from "../../news/research-plan.ts";
+import { publicationSupportGap } from "../../news/publication-support.ts";
 import type { Task, ToolExecutionApi } from "@earendil-works/pi-durable";
 import type { Context } from "@earendil-works/chord";
 import { defineAppTool, onceInCommit, toolError, toolText } from "@dna/durable-agent";
@@ -200,6 +201,10 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
           return toolError(`present_news blocked: ${gaps.join(", ")}`, [
             "Finish research, save supported evidence and classify HFS for this item.",
           ]);
+      }
+      if (managed) {
+        const supportGap = await publicationSupportGap(deps, managed, item.id, args.component, args.props);
+        if (supportGap) return toolError(`present_news blocked: ${supportGap}`);
       }
       // The feed orders news by publish date: an item without one gets it from its page first.
       if (!item.publishedAt && !item.dateSource) await deps.dates.resolve(item);

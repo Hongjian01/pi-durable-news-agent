@@ -158,8 +158,9 @@ export function researchItems(deps: Deps, child: () => AgentChange) {
       const lines = ids.map((id) => {
         const f = deps.store.news.findings(id).at(-1);
         if (!f) return `#${id} no findings reported`;
-        const supported = f.claimSupport.filter((c) => c.supported >= 0.7).length;
-        return `#${id} ${f.actionability ?? "unknown"} actionability: ${f.summary.slice(0, 300)}${f.claimSupport.length ? ` (${supported} of ${f.claimSupport.length} claims supported)` : ""}${context?.strategy.researchCandidates ? `\nSupported findings: ${JSON.stringify(f.claimSupport.filter((c) => c.supported >= 0.7))}` : ""}`;
+        const verified = f.claimSupport.filter((c) => c.status ? c.status === "supported" : c.supported >= 0.7);
+        const unresolved = f.claimSupport.filter((c) => !verified.includes(c));
+        return `#${id} ${f.actionability ?? "unknown"} actionability: ${f.summary.slice(0, 300)} (${verified.length} of ${f.claimSupport.length} claims supported). Summary is not verified evidence.\nSupported findings: ${JSON.stringify(verified)}${unresolved.length ? `\nDo not assert as fact: ${JSON.stringify(unresolved)}` : ""}`;
       });
       const failed = results.filter((r) => r.status !== "done");
       if (failed.length || ids.some((id) => !deps.store.news.findings(id).length)) {

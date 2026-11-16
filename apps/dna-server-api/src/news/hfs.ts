@@ -42,7 +42,7 @@ export const JEV_COMMANDS = [
   "claim-support",
   "importance",
 ] as const;
-export type JevCommandName = (typeof JEV_COMMANDS)[number];
+export type JevCommandName = (typeof JEV_COMMANDS)[number] | "publication-support";
 
 export interface JudgeRef extends CallRef {
   itemId?: number;
@@ -387,6 +387,8 @@ export class Judge {
 
   private policyDecision(name: JevCommandName, cmd: JevCommand, result: SystemOneResult): unknown {
     const answers = result.answers;
+    if (name === "publication-support")
+      return Object.fromEntries(Object.entries(answers).map(([key, value]) => [key, yes(value, key)]));
     if (name === "relevance") {
       const score = normalized(answers.relevance as ScoreAnswer);
       return { score, passed: score >= Number(cmd.policy.relevance_min ?? 0.45) };

@@ -172,7 +172,8 @@ export function fixtureDecide(): Decide {
                     ? 0.95
                     : 0.05,
           };
-        } else if (id.startsWith("sufficient_")) answers[id] = { type: "noul", noul: 0.95 };
+        } else if (id.startsWith("publication_")) answers[id] = { type: "noul", noul: 0.95 }; // Structural fixture, not semantic acceptance.
+        else if (id.startsWith("sufficient_")) answers[id] = { type: "noul", noul: 0.95 };
         else if (id.startsWith("conflicting_")) answers[id] = { type: "noul", noul: 0.05 };
         else if (id.startsWith("supported")) answers[id] = { type: "noul", noul: 0.8 };
         else
