@@ -41,6 +41,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: node --import tsx scripts/eval-tasks/calibrate-publication.mjs --enable-paid --out test-results/publication-calibration
       - name: Run live tasks and same-model review
+        id: live_tasks
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
@@ -53,6 +54,7 @@ jobs:
       - name: Require all seven reviewed tasks to pass
         run: node scripts/eval-tasks/ci-gate.mjs --input test-results/ci-live --mode live --review test-results/ci-live-review
       - name: Verify reviewed feedback regressions and track effects
+        if: ${{ !cancelled() && steps.live_tasks.outcome == 'success' }}
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}

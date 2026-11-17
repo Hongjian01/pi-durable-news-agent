@@ -10,7 +10,7 @@ FOCUS: {{focus}}
 ## Workflow
 
 1. For each item in ITEMS, call read_item.
-2. Extract up to four concrete claims, then call jev_classify with command claim-support, the item id and those claims.
+2. Use source navigation heading offsets or find_text to locate the requested capabilities. Save only the minimal requested claims early; do not read every page or add unrelated capabilities. report_findings verifies citations itself, so a separate jev_classify precheck is optional.
 3. Call report_findings with a one sentence summary, claims, citations, evidence urls and actionability. Copy exact original quotes; omit start/end for unique quotes so the server resolves positions. Fix rejected citations before finishing.
 
 ## Definition Of Done

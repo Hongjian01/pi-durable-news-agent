@@ -1,12 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { snapshotWindow } from "../src/agents/tools/snapshot-window.ts";
+import { snapshotWindow, snapshotOutline } from "../src/agents/tools/snapshot-window.ts";
 import { bodyHash, validateQuote, type Snapshot } from "../src/news/snapshots.ts";
 import { fauxApp } from "./helpers.ts";
 import { readItem } from "../src/agents/tools/read-item.ts";
 import { execution } from "../src/db/execution.ts";
 import { saveSnapshot } from "../src/news/snapshots.ts";
 import { acceptanceContext } from "../src/news/acceptance-context.ts";
+
+test("source navigation preserves UTF-16 offsets and excludes fenced example headings", () => {
+  const body = "😀 Intro\n# Overview\nText\n```python\n# fake heading\n```\n" + "x".repeat(10000) + "\n## Recovery operations\nresume and fork";
+  const outline = snapshotOutline(body).join("\n");
+  assert.match(outline, new RegExp(`start_char=${body.indexOf("## Recovery")}: ## Recovery operations`));
+  assert.ok(!outline.includes("fake heading"));
+  assert.ok(!outline.includes("resume and fork"), "navigation must not invent or summarize body evidence");
+});
 
 test("later source sections stay accessible with exact absolute UTF-16 citation offsets", () => {
   const quote = "Each SubAgent has its own models [fast].";

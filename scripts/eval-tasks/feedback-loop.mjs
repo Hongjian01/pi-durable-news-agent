@@ -224,20 +224,22 @@ export function promote(input, decisions, out) {
 }
 export function track(version, experiment, review, out) {
   const cases = rows(join(version, "regressions.jsonl")),
+    work = loadTasks(join(version, "corpus"), join(version, "labels")),
     s = readJson(join(experiment, "summary.json")),
     r = readJson(join(review, "summary.json"));
   if (resolve(r.sourceExperiment) !== resolve(experiment)) throw Error("Review source mismatch");
   const results = cases.map((c) => {
     const trials = r.results.filter((x) => x.taskId === c.packet.task.taskId);
     const executed = s.results.filter((x) => x.taskId === c.packet.task.taskId);
-    const expected = c.packet.documents.map((d) => d.hash).sort();
+    const expected = work.find((w) => w.task.taskId === c.packet.task.taskId);
     const sameInputs =
       executed.length === trials.length &&
       executed.every((x) => {
         const frozen = readJson(join(experiment, x.artifact, "input.json"));
         return (
-          JSON.stringify(frozen.documents.map((d) => d.hash).sort()) === JSON.stringify(expected) &&
-          frozen.task.goal === c.packet.task.goal
+          expected &&
+          hash(JSON.stringify(frozen.documents)) === hash(JSON.stringify(expected.documents)) &&
+          hash(JSON.stringify(frozen.task)) === hash(JSON.stringify(expected.task))
         );
       });
     return {

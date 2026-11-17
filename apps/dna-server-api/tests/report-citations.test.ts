@@ -7,6 +7,40 @@ import { saveSnapshot } from "../src/news/snapshots.ts";
 import { reportFindings } from "../src/agents/tools/report-findings.ts";
 import { supportedClaims } from "../src/news/evidence.ts";
 
+test("a local context excerpt is distinguished from an actually truncated source", async () => {
+  const fixture = await fauxApp(); const { app } = fixture;
+  try {
+    const sweep = app.store.sweeps.create({ trigger: "test", requestId: "context-vs-source", status: "queued" });
+    app.store.submissions.create(sweep.id, acceptanceContext(app, new Date().toISOString(), 1), { type: "input", requestId: "context-vs-source", content: "Verify model selection" });
+    app.store.lifecycle.transition(sweep.id, "running");
+    await execution.run({ sweepId: sweep.id, epoch: 0 }, async () => {
+      const item = app.store.news.upsertItem({ url: "https://example.dev/context", title: "SubAgent" }).item;
+      const quote = "Each child can select its own model.";
+      const snap = saveSnapshot(app.store.db, { url: item.url, contentMd: "x".repeat(7000) + "\n## Model selection\n" + quote + "\n" + "z".repeat(7000), fetchedAt: new Date().toISOString(), fetchVia: "fixture" })!;
+      let calls = 0;
+      app.judge.run = (async (name: any, vars: any) => {
+        calls++; assert.equal(name, "claim-support");
+        const source = vars.evidence.sources[0];
+        assert.equal(source.contextIsExcerpt, true);
+        assert.equal(source.sourceTruncated, false);
+        assert.equal(source.context_truncated, undefined);
+        assert.ok(source.context.includes("## Model selection"));
+        assert.equal(source.quote, quote);
+        return { answers: { supported_0: { type: "noul", noul: .99 }, sufficient_0: { type: "noul", noul: .99 }, conflicting_0: { type: "noul", noul: .01 } } };
+      }) as any;
+      const tool = reportFindings(app);
+      const args = { item_id: item.id, summary: "Each child can choose its own model.", claims: ["Each child can choose its own model."], citations: [{ claim_index: 0, snapshot_id: snap.id, quote }], evidence_urls: [item.url], actionability: "low" };
+      const result = await (tool.execute as any)(args, { taskId: 9001, conversationId: 1 }, app.ctx);
+      assert.ok(!result.isError); assert.equal(calls, 1);
+      const incomplete = app.store.news.upsertItem({ url: "https://example.dev/truncated", title: "Incomplete source" }).item;
+      const clipped = saveSnapshot(app.store.db, { url: incomplete.url, contentMd: quote, truncated: true, fetchedAt: new Date().toISOString(), fetchVia: "fixture" })!;
+      await (tool.execute as any)({ ...args, item_id: incomplete.id, evidence_urls: [incomplete.url], citations: [{ claim_index: 0, snapshot_id: clipped.id, quote }] }, { taskId: 9002, conversationId: 1 }, app.ctx);
+      assert.equal(calls, 1, "actually truncated sources must not reach the judge");
+      assert.equal((app.store.db.prepare("SELECT status FROM claims ORDER BY id DESC LIMIT 1").get() as any).status, "insufficient");
+    });
+  } finally { await fixture.cleanup(); }
+});
+
 test("wrong citation offsets reject without saving; retry with a unique quote produces validated evidence", async () => {
   const fixture = await fauxApp({ JEV_BACKEND: "fixture" });
   const { app } = fixture;

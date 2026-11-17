@@ -1,6 +1,6 @@
 {
   "name": "claim-support",
-  "version": 2,
+  "version": 3,
   "description": "One yes or no per claim: does the evidence support it",
   "model": "~typesafe/jev-latest",
   "each": { "over": "claims", "as": "claim" },
@@ -10,7 +10,7 @@
   "questions": {
     "sufficient": {
       "type": "noul",
-      "instructions": "Does the supplied evidence contain enough source context to assess this claim without guessing: {{claim}}? Truncated or missing context is insufficient."
+      "instructions": "Do the supplied source quotes and neighbouring context identify the subject and qualifications needed to assess this claim without guessing: {{claim}}? contextIsExcerpt means an intentional local window of a complete saved source, NOT a damaged or truncated source; do not require unrelated portions of the entire document. Insufficient means context needed for this specific claim is absent or ambiguous, or sourceTruncated is true."
     },
     "conflicting": {
       "type": "noul",

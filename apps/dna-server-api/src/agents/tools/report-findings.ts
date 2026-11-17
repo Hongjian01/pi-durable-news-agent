@@ -93,6 +93,7 @@ export function reportFindings(deps: Deps) {
             "Copy an exact quote from read_item or scrape_url and use its snapshot_id, body_hash and evidence URL.",
             "For a unique exact quote, OMIT both start and end; the server computes UTF-16 offsets. Never guess character positions. Repeated quotes require exact disambiguating offsets.",
             "Correct citations and retry report_findings. To abstain when no source supports any claim, submit claims: [] and citations: [].",
+            "If only an optional claim has a bad quote, remove that claim and its citation, reindex remaining claim_index values and submit the minimal requested facts; do not lose valid core findings trying to repair unrelated details.",
           ],
         );
       if (args.claims.length && !scope) {
@@ -182,7 +183,7 @@ export function reportFindings(deps: Deps) {
       const supported = assessed ? assessed.filter((c) => c.status === "supported").length : support.filter((s) => s.supported >= 0.7).length;
       const unresolved = assessed?.filter((c) => c.status !== "supported") ?? [];
       return toolText(
-        `Saved findings for #${item.id}${args.claims.length ? `: ${supported} of ${args.claims.length} claims supported` : ""}.${unresolved.length ? `\nNot verified: ${JSON.stringify(unresolved.map((c) => ({ claim: c.text, status: c.status })))}. Do not publish these as established facts. If required to answer the user, submit a new corrected report with direct quotes covering every facet, or abstain.` : ""}`,
+        `Saved findings for #${item.id}${args.claims.length ? `: ${supported} of ${args.claims.length} claims supported` : ""}.${unresolved.length ? `\nNot verified: ${JSON.stringify(unresolved.map((c) => ({ claim: c.text, status: c.status, support: c.score, sufficiency: c.sufficiency, conflict: c.conflict })))}. Do not publish these as established facts. If required to answer the user, submit a new corrected report with direct quotes covering every facet, or abstain. For insufficient context add the subject/heading and relevant field row, or simplify to the minimal requested capability; do not repeatedly paraphrase the same incomplete evidence.` : ""}`,
       );
     },
   });

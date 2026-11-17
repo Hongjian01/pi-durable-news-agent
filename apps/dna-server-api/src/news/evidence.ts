@@ -17,6 +17,8 @@ export interface AssessedClaim {
   text: string;
   status: "supported" | "unsupported" | "insufficient" | "conflicting";
   score: number | null;
+  sufficiency?: number;
+  conflict?: number;
   operationKey?: string;
   reason?: string;
   evidence: { snapshot: Snapshot; quote: string; start: number; end: number; valid: boolean }[];
@@ -73,7 +75,8 @@ export async function assessClaims(
         Math.max(0, e.start - 1000),
         Math.min(e.snapshot.body.length, e.end + 1000),
       ),
-      context_truncated: e.start > 1000 || e.end + 1000 < e.snapshot.body.length,
+      contextIsExcerpt: e.start > 1000 || e.end + 1000 < e.snapshot.body.length,
+      sourceTruncated: !!e.snapshot.truncated,
     }));
     const result = await deps.judge.run(
       "claim-support",
@@ -84,6 +87,8 @@ export async function assessClaims(
     const sufficient = yes(result.answers.sufficient_0, "sufficient_0");
     const conflicting = yes(result.answers.conflicting_0, "conflicting_0");
     claim.score = supported;
+    claim.sufficiency = sufficient;
+    claim.conflict = conflicting;
     claim.operationKey = result.judgment?.operationId;
     delete claim.reason;
     claim.status =
