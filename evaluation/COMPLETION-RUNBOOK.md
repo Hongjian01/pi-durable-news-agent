@@ -2,6 +2,13 @@
 
 2026-11-17。全部模型辅助审核记录保持 humanReviewed=false、independent=false。
 
+## 已执行的结果
+
+- 实现提交 69864e7，真实运行 [44030087132](https://github.com/Hongjian01/pi-durable-news-agent/actions/runs/44030087132)：复评七题全部 passed，最终严格门禁通过，自动失败队列为零。
+- 八例前置诊断校准完成，但仅 4/8 整例匹配。未降低阈值或修改标签来迎合输出，当前不具备启用硬阻断的资格。校准工具、报告和自动执行已完成，诊断模型质量仍是已知局限。
+- 实际两例失败已完成模型辅助审核、脱敏版本入库、可执行配置编译、免费重测和 pending 状态追踪。脱敏改变来源正文时，保留原哈希和新哈希；不能将不同输入的成功合并为原任务的精确重放。
+- 生产负反馈通过数据库迁移自动写入持久审核队列，保存反馈 ID 引用，不复制私人 note。应用启动迁移会回填历史负反馈，重启不丢队列；没有真实用户反馈时不伪造线上修复效果。
+
 ## 1. 发布检查校准
 
 新增 publication-v1 八条挑战：正常恢复、相邻权限主题、预算有证据但模型缺证据、完整模型配置、工具筛选正例与否定反转、草稿正确限定与过度发布主张。没有把旧失败输出改成标准答案。
@@ -40,6 +47,7 @@ node scripts/eval-tasks/capture-production-feedback.mjs --database data/dna.sqli
 
 ```bash
 node scripts/eval-tasks/feedback-loop.mjs --action capture --input ORIGINAL_RUN --review ORIGINAL_REVIEW --out NEW_QUEUE
+node scripts/eval-tasks/review-feedback.mjs --input NEW_QUEUE --out DECISIONS_JSONL --enable-paid
 node scripts/eval-tasks/feedback-loop.mjs --action promote --input NEW_QUEUE --decisions DECISIONS_JSONL --out NEW_VERSION
 ```
 

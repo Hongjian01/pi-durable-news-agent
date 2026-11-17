@@ -9,7 +9,7 @@ export function summarize(base, status) {
     try { return JSON.parse(readFileSync(file, "utf8")); } catch { return null; }
   };
   const run = read("ci-live/summary.json"), review = read("ci-live-review/summary.json"),
-    gate = read("ci-live/ci-gate.json"), preflight = read("live-preflight.json");
+    gate = read("ci-live/ci-gate.json"), preflight = read("live-preflight.json"), calibration = read("publication-calibration/calibration.json");
   const passed = status === "success" && gate?.passed === true;
   return ["# Agent daily evaluation", "",
     `Result: ${passed ? "PASS" : "FAIL / INCOMPLETE"} (job: ${status})`, "",
@@ -17,6 +17,7 @@ export function summarize(base, status) {
     `Completed tasks: ${run?.completed ?? 0} / ${run?.planned ?? 7}`,
     `Reviewed passed tasks: ${review?.counts?.passed ?? 0} / 7`,
     `Seven-task gate: ${gate?.passed === true ? "passed" : "not passed"}`, "",
+    ...(calibration ? [`Publication diagnostic calibration: ${calibration.matched}/${calibration.total}. Observe-only; this does not replace the seven-task gate.`, ""] : []),
     "Same-model assisted development regression; humanReviewed=false; independent=false.",
     "DeepSeek direct fees are outside the OpenRouter $1 credit cap.",
     "Download this run's Artifacts for observations, citations, scores, review and SQLite databases.",
