@@ -58,6 +58,7 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DNA_COST_ALERT_USD: '1'
         run: node scripts/eval-tasks/feedback-regressions.mjs --live --enable-paid --out test-results/feedback-regressions
       - name: Capture reviewed failures
         if: always()

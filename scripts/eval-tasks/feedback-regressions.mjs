@@ -18,7 +18,7 @@ export function validateTracking(results, live) {
 function run(args) {
   const child = spawnSync(process.execPath, args, {
     cwd: root,
-    env: process.env,
+    env: { ...process.env, DNA_COST_ALERT_USD: process.env.DNA_COST_ALERT_USD ?? "1" },
     stdio: "inherit",
   });
   if (child.error || child.status !== 0)
