@@ -16,7 +16,7 @@ jobs:
           node-version: 24.21.0
           cache: npm
       - run: npm ci
-      - name: Sixteen bounded paid judgments on eight fixed cases
+      - name: Thirty-two bounded paid judgments on sixteen fixed cases
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: node --import tsx scripts/eval-tasks/calibrate-publication.mjs --enable-paid --check --out test-results/publication-calibration

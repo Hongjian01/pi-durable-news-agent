@@ -23,13 +23,17 @@ const command = loadCommand(
   "publication-support",
   join(root, "apps/dna-server-api/prompt_engineering/jev"),
 );
-const relevanceCommand = loadCommand("publication-relevance", join(root,"apps/dna-server-api/prompt_engineering/jev"));
-const groundingCommand = loadCommand("publication-grounding", join(root,"apps/dna-server-api/prompt_engineering/jev"));
-const cases = readFileSync(join(root, "evaluation/calibration/publication-v1/cases.jsonl"), "utf8")
-  .trim()
-  .split(/\r?\n/)
-  .map(JSON.parse);
-if (cases.length !== 8) throw Error("Expected eight calibration cases");
+const relevanceCommand = loadCommand(
+  "publication-relevance",
+  join(root, "apps/dna-server-api/prompt_engineering/jev"),
+);
+const groundingCommand = loadCommand(
+  "publication-grounding",
+  join(root, "apps/dna-server-api/prompt_engineering/jev"),
+);
+const casesFile = "evaluation/calibration/publication-v2/cases.jsonl";
+const cases = readFileSync(join(root, casesFile), "utf8").trim().split(/\r?\n/).map(JSON.parse);
+if (cases.length !== 16) throw Error("Expected sixteen calibration cases");
 const out = resolve(a.out ?? "test-results/publication-calibration-" + Date.now());
 mkdirSync(dirname(out), { recursive: true });
 mkdirSync(out, { recursive: false });
@@ -37,11 +41,21 @@ const client = new JevClient({ provider: "openrouter", maxAttempts: 1 }),
   results = [];
 for (const c of cases) {
   try {
-    const { result: relevant } = await runCommand(relevanceCommand, c, (state, questions, options) =>
-      client.systemOne(state, questions, options),
+    const { result: relevant, rendered: relevanceInput } = await runCommand(
+      relevanceCommand,
+      c,
+      (state, questions, options) => client.systemOne(state, questions, options),
     );
-    const { result: grounded } = await runCommand(groundingCommand, c, (state, questions, options) => client.systemOne(state, questions, options));
-    const result={answers:{...relevant.answers,...grounded.answers},usage:{relevance:relevant.usage,grounding:grounded.usage},model:grounded.model};
+    const { result: grounded, rendered: groundingInput } = await runCommand(
+      groundingCommand,
+      c,
+      (state, questions, options) => client.systemOne(state, questions, options),
+    );
+    const result = {
+      answers: { ...relevant.answers, ...grounded.answers },
+      usage: { relevance: relevant.usage, grounding: grounded.usage },
+      model: grounded.model,
+    };
     const actual = Object.fromEntries(
       Object.keys(c.expected).map((k) => [
         k,
@@ -56,12 +70,16 @@ for (const c of cases) {
       answers: result.answers,
       usage: result.usage,
       model: result.model,
+      inputs: { relevance: relevanceInput, grounding: groundingInput },
+      metadata: { relevance: relevant.meta, grounding: grounded.meta },
     });
   } catch {
     results.push({ id: c.id, matched: false, error: "provider_or_schema_failure" });
   }
   writeJson(join(out, "calibration.json"), {
-    commandHash: hash(JSON.stringify({command,relevanceCommand,groundingCommand})),
+    casesFile,
+    casesHash: hash(readFileSync(join(root, casesFile))),
+    commandHash: hash(JSON.stringify({ command, relevanceCommand, groundingCommand })),
     humanReviewed: false,
     independent: false,
     labelOrigin: "model_authored_challenge",
@@ -70,7 +88,10 @@ for (const c of cases) {
     matched: results.filter((r) => r.matched).length,
     total: cases.length,
     complete: results.length === cases.length,
-    eligibleForEnforcement: results.length === cases.length && results.every((r) => r.matched),
+    developmentChallengePassed: results.length === cases.length && results.every((r) => r.matched),
+    eligibleForEnforcement: false,
+    enforcementReason:
+      "Exposed model-authored challenges alone cannot authorize a production blocker",
     results,
   });
 }

@@ -52,11 +52,19 @@ jobs:
           npm run eval:regrade -- --input test-results/ci-live --out test-results/ci-live-review --judge-provider deepseek --judge-model deepseek-flash --enable-paid
       - name: Require all seven reviewed tasks to pass
         run: node scripts/eval-tasks/ci-gate.mjs --input test-results/ci-live --mode live --review test-results/ci-live-review
+      - name: Verify reviewed feedback regressions and track effects
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: node scripts/eval-tasks/feedback-regressions.mjs --live --enable-paid --out test-results/feedback-regressions
       - name: Capture reviewed failures
         if: always()
         run: |
           if [ -f test-results/ci-live-review/summary.json ]; then
             node scripts/eval-tasks/feedback-loop.mjs --action capture --input test-results/ci-live --review test-results/ci-live-review --out test-results/feedback-queue
+          fi
+          if [ -f test-results/feedback-regressions/review/summary.json ]; then
+            node scripts/eval-tasks/feedback-loop.mjs --action capture --input test-results/feedback-regressions/run --review test-results/feedback-regressions/review --out test-results/feedback-regression-queue
           fi
       - name: Publish run summary
         if: always()

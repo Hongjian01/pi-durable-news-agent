@@ -6,22 +6,43 @@ export function summarize(base, status) {
   const read = (name) => {
     const file = join(base, name);
     if (!existsSync(file)) return null;
-    try { return JSON.parse(readFileSync(file, "utf8")); } catch { return null; }
+    try {
+      return JSON.parse(readFileSync(file, "utf8"));
+    } catch {
+      return null;
+    }
   };
-  const run = read("ci-live/summary.json"), review = read("ci-live-review/summary.json"),
-    gate = read("ci-live/ci-gate.json"), preflight = read("live-preflight.json"), calibration = read("publication-calibration/calibration.json");
+  const run = read("ci-live/summary.json"),
+    review = read("ci-live-review/summary.json"),
+    gate = read("ci-live/ci-gate.json"),
+    preflight = read("live-preflight.json"),
+    calibration = read("publication-calibration/calibration.json"),
+    feedback = read("feedback-regressions/campaign.json");
   const passed = status === "success" && gate?.passed === true;
-  return ["# Agent daily evaluation", "",
-    `Result: ${passed ? "PASS" : "FAIL / INCOMPLETE"} (job: ${status})`, "",
+  return [
+    "# Agent daily evaluation",
+    "",
+    `Result: ${passed ? "PASS" : "FAIL / INCOMPLETE"} (job: ${status})`,
+    "",
     `Preflight: ${preflight?.passed === true ? "passed" : "failed or unavailable"}`,
     `Completed tasks: ${run?.completed ?? 0} / ${run?.planned ?? 7}`,
     `Reviewed passed tasks: ${review?.counts?.passed ?? 0} / 7`,
-    `Seven-task gate: ${gate?.passed === true ? "passed" : "not passed"}`, "",
-    ...(calibration ? [`Publication diagnostic calibration: ${calibration.matched}/${calibration.total}. Observe-only; this does not replace the seven-task gate.`, ""] : []),
+    `Seven-task gate: ${gate?.passed === true ? "passed" : "not passed"}`,
+    "",
+    ...(calibration
+      ? [
+          `Publication diagnostic calibration: ${calibration.matched}/${calibration.total}. Observe-only; this does not replace the seven-task gate.`,
+          "",
+        ]
+      : []),
+    `Reviewed feedback regressions: ${feedback?.results?.filter((r) => r.status === "resolved_in_this_run").length ?? 0} / 2 resolved in this run; structural gate: ${feedback?.structuralPass === true ? "passed" : "incomplete or failed"}.`,
+    "",
     "Same-model assisted development regression; humanReviewed=false; independent=false.",
     "DeepSeek direct fees are outside the OpenRouter $1 credit cap.",
     "Download this run's Artifacts for observations, citations, scores, review and SQLite databases.",
-    "Missing/failed preflight, cancelled jobs, or missing gate results do not establish a passing evaluation.", ""].join("\n");
+    "Missing/failed preflight, cancelled jobs, or missing gate results do not establish a passing evaluation.",
+    "",
+  ].join("\n");
 }
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   const base = resolve("test-results");

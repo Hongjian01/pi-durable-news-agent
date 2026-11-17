@@ -37,6 +37,8 @@ jobs:
         run: |
           npm run eval:tasks -- --config evaluation/experiment.v4.json --backend fixture --research-candidates 2 --out test-results/ci-fixture
           node scripts/eval-tasks/ci-gate.mjs --input test-results/ci-fixture --mode fixture
+      - name: Reviewed feedback fixture smoke and effect tracking
+        run: node scripts/eval-tasks/feedback-regressions.mjs --out test-results/feedback-regressions
       - uses: actions/upload-artifact@v4
         if: always()
         with:

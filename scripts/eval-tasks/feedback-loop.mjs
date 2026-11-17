@@ -260,7 +260,9 @@ export function track(version, experiment, review, out) {
     humanReviewed: false,
     sourceVersion: resolve(version),
     sourceExperiment: resolve(experiment),
-    sourceCommit: s.settings?.source ?? null,
+    sourceFingerprint: existsSync(join(experiment, "manifest.json"))
+      ? (readJson(join(experiment, "manifest.json")).source?.hash ?? null)
+      : null,
     results,
   });
   return results;
