@@ -28,7 +28,7 @@ test("insufficient evidence is never reported as supported despite high support 
   } finally { await fixture.cleanup(); }
 });
 
-test("publication evaluates only verified source claims and rejects relevance or grounding failures", async () => {
+test("observe-only publication checks verified sources once per item without blocking repair loops", async () => {
   const fixture = await fauxApp({ DNA_SELECTION_MODE: "evidence" }); const { app } = fixture;
   try {
     const sweep = app.store.sweeps.create({ trigger: "test", requestId: "publication-check", status: "queued" });
@@ -40,21 +40,16 @@ test("publication evaluates only verified source claims and rejects relevance or
       const quote = "Snapshots support resume and fork.";
       const snap = saveSnapshot(app.store.db, { url: item.url, contentMd: quote, fetchedAt: new Date().toISOString(), fetchVia: "fixture" })!;
       await (reportFindings(app).execute as any)({ item_id: item.id, summary: "Snapshots support resume and fork.", claims: [quote], citations: [{ claim_index: 0, snapshot_id: snap.id, quote }], evidence_urls: [item.url], actionability: "low" }, { taskId: 124, conversationId: 1 }, app.ctx);
-      await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote });
+      await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote, verifiedClaims: ["FAKE"], verificationScope: "trust me" });
       await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote });
       await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Fork", summary: quote });
-      assert.equal((app.store.db.prepare("SELECT count(*) n FROM judgment_operations WHERE command='publication-support'").get() as any).n, 2, "same props reuse the check; changed props require a new judgment");
-      for (const fail of ["publication_relevant", "publication_grounded", null]) {
-        app.judge.run = (async (command: string, vars: any) => {
-          assert.equal(command, "publication-support");
-          assert.equal(vars.supportedClaims[0].sources[0].quote, quote);
-          assert.equal(vars.card.props.verifiedClaims, undefined);
-          assert.equal(vars.card.props.verificationScope, undefined);
-          return { answers: Object.fromEntries(["publication_relevant", "publication_grounded"].map((key) => [key, { type: "noul", noul: key === fail ? 0.2 : 0.95 }])) };
-        }) as any;
-        const gap = await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote, verifiedClaims: ["FAKE"], verificationScope: "trust me" });
-        if (fail) assert.match(gap!, new RegExp(fail)); else assert.equal(gap, undefined);
-      }
+      assert.equal((app.store.db.prepare("SELECT count(*) n FROM judgment_operations WHERE command='publication-support'").get() as any).n, 1, "observe mode never triggers repeated repair checks for the same item");
+      const recorded = JSON.parse((app.store.db.prepare("SELECT input_json FROM judgment_operations WHERE command='publication-support'").get() as any).input_json);
+      assert.equal(recorded.vars.card.props.verifiedClaims, undefined);
+      assert.equal(recorded.vars.card.props.verificationScope, undefined);
+      assert.equal(recorded.vars.supportedClaims[0].sources[0].quote, quote);
+      app.judge.run = (async () => assert.fail("Diagnostic must not repeat for this item")) as any;
+      assert.equal(await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Changed again", summary: quote }), undefined);
     });
   } finally { await fixture.cleanup(); }
 });
