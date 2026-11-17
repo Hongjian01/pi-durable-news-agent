@@ -23,6 +23,8 @@ const command = loadCommand(
   "publication-support",
   join(root, "apps/dna-server-api/prompt_engineering/jev"),
 );
+const relevanceCommand = loadCommand("publication-relevance", join(root,"apps/dna-server-api/prompt_engineering/jev"));
+const groundingCommand = loadCommand("publication-grounding", join(root,"apps/dna-server-api/prompt_engineering/jev"));
 const cases = readFileSync(join(root, "evaluation/calibration/publication-v1/cases.jsonl"), "utf8")
   .trim()
   .split(/\r?\n/)
@@ -34,9 +36,11 @@ const client = new JevClient({ provider: "openrouter", maxAttempts: 1 }),
   results = [];
 for (const c of cases) {
   try {
-    const { result } = await runCommand(command, c, (state, questions, options) =>
+    const { result: relevant } = await runCommand(relevanceCommand, c, (state, questions, options) =>
       client.systemOne(state, questions, options),
     );
+    const { result: grounded } = await runCommand(groundingCommand, c, (state, questions, options) => client.systemOne(state, questions, options));
+    const result={answers:{...relevant.answers,...grounded.answers},usage:{relevance:relevant.usage,grounding:grounded.usage},model:grounded.model};
     const actual = Object.fromEntries(
       Object.keys(c.expected).map((k) => [
         k,
@@ -56,7 +60,7 @@ for (const c of cases) {
     results.push({ id: c.id, matched: false, error: "provider_or_schema_failure" });
   }
   writeJson(join(out, "calibration.json"), {
-    commandHash: hash(JSON.stringify(command)),
+    commandHash: hash(JSON.stringify({command,relevanceCommand,groundingCommand})),
     humanReviewed: false,
     independent: false,
     labelOrigin: "model_authored_challenge",

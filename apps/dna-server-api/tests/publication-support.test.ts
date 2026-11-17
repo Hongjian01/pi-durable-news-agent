@@ -43,8 +43,11 @@ test("observe-only publication checks verified sources once per item without blo
       await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote, verifiedClaims: ["FAKE"], verificationScope: "trust me" });
       await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Resume", summary: quote });
       await publicationSupportGap(app, sweep.id, item.id, "brief", { title: "Fork", summary: quote });
-      assert.equal((app.store.db.prepare("SELECT count(*) n FROM judgment_operations WHERE command='publication-support'").get() as any).n, 1, "observe mode never triggers repeated repair checks for the same item");
-      const recorded = JSON.parse((app.store.db.prepare("SELECT input_json FROM judgment_operations WHERE command='publication-support'").get() as any).input_json);
+      assert.equal((app.store.db.prepare("SELECT count(*) n FROM judgment_operations WHERE command IN ('publication-relevance','publication-grounding')").get() as any).n, 2, "observe mode runs each independent judgment once");
+      const relevant = JSON.parse((app.store.db.prepare("SELECT input_json FROM judgment_operations WHERE command='publication-relevance'").get() as any).input_json);
+      assert.equal(relevant.rendered.state.card, undefined);
+      const recorded = JSON.parse((app.store.db.prepare("SELECT input_json FROM judgment_operations WHERE command='publication-grounding'").get() as any).input_json);
+      assert.equal(recorded.rendered.state.goal, undefined);
       assert.equal(recorded.vars.card.props.verifiedClaims, undefined);
       assert.equal(recorded.vars.card.props.verificationScope, undefined);
       assert.equal(recorded.vars.supportedClaims[0].sources[0].quote, quote);
