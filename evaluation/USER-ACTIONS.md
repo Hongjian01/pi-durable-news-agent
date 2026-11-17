@@ -2,6 +2,8 @@
 
 本轮授权更新：开发阶段已按用户要求使用模型辅助裁决替代真人复核，API 评分器暂与主 Agent 同为 DeepSeek。无需为本轮再安排真人复核；所有结果仍保留 humanReviewed=false。实现、报告与单命令运行入口见 [MODEL-ASSISTED-DELIVERY.md](MODEL-ASSISTED-DELIVERY.md)。下文独立人工验收要求仅适用于未来要宣称独立人工金标或正式验收的场景。
 
+2026-11-17 现状：代码已推送、GitHub 环境及两个 Secrets 已可用、定时评测已启用；无需重新从单题试跑开始。新反馈审核入库、两题回归与效果追踪入口见 [COMPLETION-RUNBOOK.md](COMPLETION-RUNBOOK.md)。当前负责人主要维护账户余额/密钥有效期，并实际使用产品提供反馈；线上收益与独立验收不由模型辅助开发分数替代。
+
 更新于 2026-11-13。实施与验证结果参见本目录 DELIVERY.md。
 
 ## 1. 确认产品验收偏好

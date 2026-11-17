@@ -1,5 +1,9 @@
 # M4 离线评测与标注入口
 
+**2026-11-17 完整手册**：[最新修复、验收与剩余事项](COMPLETION-RUNBOOK.md) · [体系复盘与实现总览](HANDBOOK.md) · [从零复刻](REPRODUCE.md) · [行业对照与通用方法论](METHODOLOGY.md)。下文和历史交付文档保留各阶段状态；请按实际提交与运行报告判断验收，不将部署完成等同于质量通过。
+
+云端失败已完成取证：[43907971612 失败原因](CI-FAILURE-43907971612.md)。唯一失败为 pilot-04 的研究预算耗尽，伴随默认声明验证证据截断和无效重试；门禁正确拒绝未完成的交付。
+
 最新工程交付与验证见 [DELIVERY.md](DELIVERY.md)，负责人待办见 [USER-ACTIONS.md](USER-ACTIONS.md)。网页评测入口为 `/#/evaluations`。
 
 继续建设自动评测请按[逐步实现检查清单](IMPLEMENTATION-CHECKLIST.md)执行。每步包含修改位置、验证方法、完成条件和产物。

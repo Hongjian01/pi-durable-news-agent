@@ -20,3 +20,16 @@
 - 原始失败产物保留，未修改题库、标签、通过阈值或预算上限。
 
 实际供应商模型质量需以修复提交后的真实运行确认；新提示、源码与旧实验指纹不同，不拼接为同协议统计。新运行仍可能有模型随机失败，不以放松门禁消除失败。
+
+## 修复后的真实验证
+
+代码已提交并推送：2089380963b7d1085ec6fb442aa4864b9927da05。[云端免费 CI](https://github.com/Hongjian01/pi-durable-news-agent/actions/runs/43915113291) 全部通过。
+
+仅追加一次 [真实七题运行 43915165361](https://github.com/Hongjian01/pi-durable-news-agent/actions/runs/43915165361)，结果 5 passed、1 needs_review、1 failed，严格门禁正确拒绝。
+
+- 原故障 pilot-04：completed，研究 findings 已保存，卡片已发布，审计 missing=[]，复评 passed。原来的研究预算耗尽未复现。
+- pilot-02：completed，但发布了权限系统文档，核心工具筛选结论只出现在无对应引文的 why，sourceId=null，复评 needs_review。正确工具筛选文档已研究却未发布，属于仍存在的最终选材/证据覆盖问题。
+- pilot-05：completed，预算事实有引用，但 why 中的模型选择结论没有相应引用；一致性评审 failed。另有标题错字，不能宣称整套质量已解决。
+- 其余四题 passed。所有真实题本轮均完成业务执行，失败类型已从 pilot-04 的不完整执行变为另外两题的内容/引用质量问题。
+
+本地原始报告位于 test-results/github-run-43915165361，未改变原始评分、标签或阈值。59 项测试与 pilot-04 成功验证了本次工程修复；它们不证明其它题目稳定通过。后续应单独改进发布前问题对齐与核心事实引用完整性，避免无限重复生成求全绿。
