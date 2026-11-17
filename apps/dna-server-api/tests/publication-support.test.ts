@@ -6,6 +6,7 @@ import { execution } from "../src/db/execution.ts";
 import { saveSnapshot } from "../src/news/snapshots.ts";
 import { reportFindings } from "../src/agents/tools/report-findings.ts";
 import { publicationSupportGap } from "../src/news/publication-support.ts";
+import { presentNews } from "../src/agents/tools/present.ts";
 
 test("insufficient evidence is never reported as supported despite high support probability", async () => {
   const fixture = await fauxApp(); const { app } = fixture;
@@ -24,6 +25,43 @@ test("insufficient evidence is never reported as supported despite high support 
       assert.match(JSON.stringify(result), /0 of 1 claims supported/);
       assert.match(JSON.stringify(result), /insufficient/);
       assert.equal(app.store.news.findings(item.id)[0].claimSupport[0].status, "insufficient");
+    });
+  } finally { await fixture.cleanup(); }
+});
+
+test("concurrent publication cannot exceed frozen card capacity after async diagnostics", async () => {
+  const fixture = await fauxApp({ DNA_SELECTION_MODE: "evidence", DNA_RESEARCH_CANDIDATES: "2", DNA_IMAGES: "0" });
+  const { app } = fixture;
+  try {
+    const sweep = app.store.sweeps.create({ trigger: "test", requestId: "concurrent-publication", status: "queued" });
+    app.store.submissions.create(sweep.id, acceptanceContext(app, new Date().toISOString(), 1), { type: "input", requestId: "concurrent-publication", content: "Check support" });
+    app.store.lifecycle.transition(sweep.id, "running");
+    await execution.run({ sweepId: sweep.id, epoch: 0 }, async () => {
+      const items = [1, 2].map((i) => app.store.news.upsertItem({ url: `https://example.dev/concurrent-${i}`, title: `Candidate ${i}`, publishedAt: new Date().toISOString() }).item);
+      for (const item of items) {
+        app.store.lifecycle.item(sweep.id, item.id, { selected: 1, disposition: "selected" });
+        const quote = "Snapshots support resume and fork.";
+        const snap = saveSnapshot(app.store.db, { url: item.url, contentMd: quote, fetchedAt: new Date().toISOString(), fetchVia: "fixture" })!;
+        await (reportFindings(app).execute as any)({ item_id: item.id, summary: quote, claims: [quote], citations: [{ claim_index: 0, snapshot_id: snap.id, quote }], evidence_urls: [item.url], actionability: "low" }, { taskId: 200 + item.id, conversationId: 1 }, app.ctx);
+        await app.judge.hfs(item, { sweepId: sweep.id, itemId: item.id });
+      }
+      const original = app.judge.run.bind(app.judge);
+      let arrived = 0;
+      let release!: () => void;
+      const barrier = new Promise<void>((resolve) => { release = resolve; });
+      app.judge.run = (async (name: any, vars: any, ref: any) => {
+        if (name === "publication-relevance") {
+          if (++arrived === 2) release();
+          await barrier;
+        }
+        return original(name, vars, ref);
+      }) as any;
+      const tool = presentNews(app, {} as any);
+      const results = await Promise.all(items.map((item) => (tool.execute as any)({ item_id: item.id, component: "brief", props: { title: item.title, summary: "Snapshots support resume and fork." } }, { taskId: 400 + item.id, conversationId: 1 }, app.ctx)));
+      assert.equal(arrived, 2, "both calls pass the early check before either publishes");
+      assert.equal(app.store.news.cardCount(sweep.id), 1);
+      assert.equal(results.filter((r) => r.isError).length, 1);
+      assert.match(JSON.stringify(results), /card_capacity_reached/);
     });
   } finally { await fixture.cleanup(); }
 });

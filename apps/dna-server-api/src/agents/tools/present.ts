@@ -225,6 +225,12 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
       );
       const imageId = await imageFor(deps, item, title, summary);
       assertExecution(deps.store.db);
+      // Other tool calls can publish while this call awaits judgments, dates or
+      // images. Recheck after the final await; this check and addCard are sync.
+      if (managed) {
+        const capacityGap = publicationCapacityGap(deps.store, managed);
+        if (capacityGap) return toolError(capacityGap);
+      }
       const { card } = deps.store.news.addCard({
         kind: "news",
         component: renderedComponent,

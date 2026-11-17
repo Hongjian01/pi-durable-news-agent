@@ -1,5 +1,5 @@
 import { mkdirSync, readFileSync } from "node:fs";
-import { resolve, join } from "node:path";
+import { resolve, join, dirname } from "node:path";
 import { parseArgs } from "node:util";
 import { JevClient, loadCommand, runCommand, yes } from "@dna/jev";
 import { root, writeJson, hash } from "./protocol.mjs";
@@ -31,6 +31,7 @@ const cases = readFileSync(join(root, "evaluation/calibration/publication-v1/cas
   .map(JSON.parse);
 if (cases.length !== 8) throw Error("Expected eight calibration cases");
 const out = resolve(a.out ?? "test-results/publication-calibration-" + Date.now());
+mkdirSync(dirname(out), { recursive: true });
 mkdirSync(out, { recursive: false });
 const client = new JevClient({ provider: "openrouter", maxAttempts: 1 }),
   results = [];
