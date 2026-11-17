@@ -1,0 +1,11 @@
+{
+  "corpus": "evaluation/regressions/feedback-v2/corpus",
+  "labels": "evaluation/regressions/feedback-v2/labels",
+  "model": "deepseek-flash",
+  "researchModel": "deepseek-flash",
+  "provider": "deepseek",
+  "backend": "fixture",
+  "budgetScope": "openrouter-credits",
+  "researchCandidates": 2,
+  "repeats": 1
+}

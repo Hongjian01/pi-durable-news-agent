@@ -4,6 +4,7 @@
 import { Type } from "@earendil-works/pi-ai";
 import { publicationCapacityGap } from "../../news/research-plan.ts";
 import { publicationSupportGap } from "../../news/publication-support.ts";
+import { evaluation } from "../../news/context.ts";
 import type { Task, ToolExecutionApi } from "@earendil-works/pi-durable";
 import type { Context } from "@earendil-works/chord";
 import { defineAppTool, onceInCommit, toolError, toolText } from "@dna/durable-agent";
@@ -175,6 +176,8 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
       });
       if (problem) return toolError(`present_news failed: ${problem}`);
       const managed = execution.getStore()?.sweepId;
+      let renderedComponent: (typeof NEWS_COMPONENTS)[number] = args.component;
+      let renderedProps = args.props;
       if (managed) {
         const capacityGap = publicationCapacityGap(deps.store, managed);
         if (capacityGap)
@@ -205,20 +208,28 @@ export function presentNews(deps: Deps, imageTask: Task<ImageInput, any, any, ob
       if (managed) {
         const supportGap = await publicationSupportGap(deps, managed, item.id, args.component, args.props);
         if (supportGap) return toolError(`present_news blocked: ${supportGap}`);
+        if (evaluation(deps.store, managed)?.value.strategy.selectionMode === "evidence") {
+          // Directed evidence answers publish only server-validated facts. Raw
+          // model prose stays in tool telemetry, never becomes certified text.
+          const claims = supportedClaims(deps, managed, item.id);
+          if (!claims.length) return toolError("No validated claims for evidence answer");
+          renderedComponent = "brief";
+          renderedProps = { title: `资料核查：${item.title}`, summary: claims.map((c) => c.text).join("\n") };
+        }
       }
       // The feed orders news by publish date: an item without one gets it from its page first.
       if (!item.publishedAt && !item.dateSource) await deps.dates.resolve(item);
-      const title = String(args.props.title ?? args.props.name ?? args.props.claim ?? item.title);
+      const title = String(renderedProps.title ?? renderedProps.name ?? renderedProps.claim ?? item.title);
       const summary = String(
-        args.props.summary ?? args.props.dek ?? args.props.why ?? item.excerpt ?? "",
+        renderedProps.summary ?? renderedProps.dek ?? renderedProps.why ?? item.excerpt ?? "",
       );
       const imageId = await imageFor(deps, item, title, summary);
       assertExecution(deps.store.db);
       const { card } = deps.store.news.addCard({
         kind: "news",
-        component: args.component,
+        component: renderedComponent,
         props: {
-          ...args.props,
+          ...renderedProps,
           verifiedClaims: [],
           ...(managed
             ? {
